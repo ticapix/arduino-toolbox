@@ -5,6 +5,7 @@ template<uint16_t Size, typename T>
 class RingBuffer {
 
   public:
+  
     RingBuffer()
       : _start(0),
         _end(0),
@@ -52,21 +53,26 @@ class RingBuffer {
       return _buffer[t];
     }
     
-
   protected:
+    
     T _buffer[Size];
     uint16_t _start, _end;
     uint16_t _length;
     uint16_t _capacity;
 };
 
+
 template<uint16_t Size>
 class StringBuffer : public RingBuffer <Size, byte> {
+  
   public:
-  bool appendS(String str) {
+  
+  using RingBuffer<Size, byte>::append;
+  
+  bool append(String str) {
     for (uint16_t i = 0; i < str.length(); ++i) {
       if (!this->append(str[i])) {
-	return false;
+  	return false;
       }
     }
     return true;
@@ -88,6 +94,5 @@ class StringBuffer : public RingBuffer <Size, byte> {
       return -1;
     }
 };
-
 
 #endif
