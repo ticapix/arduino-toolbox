@@ -13,6 +13,8 @@ Simple RingBuffer for arduino, providing a StringBuffer container with no dynami
 	buffer.indexOf("23"); // -> return uint16_t 1
 	buffer.append('4'); // -> return bool false
 	buffer.full(); // -> return bool true
+	buffer.pop_first(); // return byte '1'
+	buffer.length(); // -> return uint16_t 2
 ```
 
 ## Tests
