@@ -6,8 +6,11 @@
 #include <string>
 #include <assert.h>
 
+// define some type to the closest one available on arduino
 typedef uint8_t byte;
 typedef std::string String;
+
+#include "../ring_buffer.h"
 
 #define PRINT_BUFFER(b) { for (uint16_t i = 0; i < b.length(); ++i) { \
       printf("%c", b[i]);					      \
@@ -15,7 +18,6 @@ typedef std::string String;
     printf("\n");						      \
   }
 
-#include "../ring_buffer.h"
 
 TEST(StringBuffer, append) {
   StringBuffer<2> buff;
@@ -112,7 +114,7 @@ TEST(StringBuffer, full_empty) {
 
 TEST(StringBuffer, append_string) {
   StringBuffer<3> buff;
-  buff.appendS("123");
+  buff.append("123");
   assert(buff.full() == true);
 }
 
