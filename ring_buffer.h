@@ -22,11 +22,11 @@ class RingBuffer {
       return true;
     }
 
-    bool full() {
+    inline bool full() const {
       return _capacity == _length;
     }
 
-    bool empty() {
+    inline bool empty() const {
       return _length == 0;
     }
 
@@ -36,7 +36,7 @@ class RingBuffer {
       _length = 0;
     }
 
-    uint16_t length() {
+    inline uint16_t length() const {
       return _length;
     }
 
@@ -47,13 +47,50 @@ class RingBuffer {
     }
 
     T pop_first() {
+      if (empty())
+	return _buffer[0];
       uint8_t t = _start;
       _start = (_start + 1) % _capacity;
       --_length;
       return _buffer[t];
     }
+
+    T pop_last() {
+      if (empty())
+	return _buffer[0];
+      --_length;
+      _end = (_start + _length) % _capacity;
+      return _buffer[_end];
+    }
     
+    /* can cause a call to memmove */
+    const T* buffer() {
+      if (!_is_continuous())
+	_make_continuous();
+      return _buffer + _start;
+    }
+
   protected:
+
+    bool _is_continuous() const {
+      /* is empty */
+      bool res = empty();
+      /* content is somewhere in the middle of buffer */
+      res = res || _start < _end;
+      /* buffer has not cyclied yet */
+      res = res || _end == 0;
+      return res;
+    }
+
+    void _make_continuous() {
+      while(!_is_continuous()) {
+	T tmp = this->pop_last();
+	memmove(&(_buffer[_start - 1]), &(_buffer[_start]), length() * sizeof (T));
+	--_start;
+	_end = (_start + _length) % _capacity;
+	this->append(tmp);
+      }
+    }
     
     T _buffer[Size];
     uint16_t _start, _end;
