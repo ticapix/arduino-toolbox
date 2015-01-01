@@ -1,0 +1,9 @@
+cmake_minimum_required (VERSION 2.6)
+enable_testing()
+
+find_package(GTest REQUIRED)
+include_directories(${GTEST_INCLUDE_DIRS})
+
+add_executable(foo foo.cc)
+target_link_libraries(foo ${GTEST_BOTH_LIBRARIES})
+add_test(AllTestsInFoo foo)
