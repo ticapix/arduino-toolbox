@@ -6,15 +6,17 @@ Simple RingBuffer for arduino, providing a StringBuffer container with no dynami
 
 ```C++
 	StringBuffer<3> buffer; // static allocation
-	buffer.empty(); // -> return bool true
-	buffer.append('1'); // -> return bool true
+	buffer.empty(); // -> return bool true | | | |
+	buffer.append('1'); // -> return bool true |1| | |
 	buffer[0]; // -> return byte '1'
-	buffer.append("23"); // -> return bool true
+	buffer.append("23"); // -> return bool true |1|2|3|
 	buffer.indexOf("23"); // -> return uint16_t 1
 	buffer.append('4'); // -> return bool false
 	buffer.full(); // -> return bool true
-	buffer.pop_first(); // return byte '1'
-	buffer.length(); // -> return uint16_t 2
+	buffer.pop_first(); // return byte '1' | |2|3|
+	buffer.pop_last(); // return byte '3' | |2| |
+	buffer.length(); // -> return uint16_t 1
+	buffer.buffer(); // return T* on a continuous memory mapping (no dynamic allocation, only memmove)
 ```
 
 ## Under the hood
