@@ -1,6 +1,8 @@
 #ifndef __STRING_BUFFER_H__
 #define __STRING_BUFFER_H__
 
+#include <Arduino.h>
+
 template<uint16_t Size, typename T>
 class RingBuffer {
 

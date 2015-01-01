@@ -22,6 +22,10 @@ find_package(Threads REQUIRED)
 
 add_executable(tests test.cpp)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -g -ansi -Wno-deprecated -std=c++11")
+
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/..)
+
 target_link_libraries(tests ${GTEST_BOTH_LIBRARIES})
 target_link_libraries(tests ${CMAKE_THREAD_LIBS_INIT})
 add_test(AllTests tests)

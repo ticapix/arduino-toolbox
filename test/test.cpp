@@ -1,16 +1,10 @@
 #include <gtest/gtest.h>
 
-#include <unistd.h>
-#include <stdio.h>
-#include <stdint.h>
-#include <string>
-#include <assert.h>
-
 // define some type to the closest one available on arduino
 typedef uint8_t byte;
 typedef std::string String;
 
-#include "../ring_buffer.h"
+#include <RingBuffer.h>
 
 TEST(StringBuffer, append) {
   StringBuffer<2> buff;

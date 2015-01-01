@@ -1,0 +1,26 @@
+#######################################
+# Syntax Coloring Map ICSC
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
+RingBuffer	KEYWORD1
+StringBuffer	KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+empty	KEYWORD2
+full	KEYWORD2
+append	KEYWORD2
+indexOf	KEYWORD2
+pop_first	KEYWORD2
+pop_last	KEYWORD2
+buffer		KEYWORD2
+length		KEYWORD2
+
+#######################################
+# Constants (LITERAL1)
+#######################################
