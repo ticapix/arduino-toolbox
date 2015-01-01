@@ -5,7 +5,7 @@ Simple RingBuffer for arduino, providing a StringBuffer container with no dynami
 ## Sample
 
 ```C++
-	StringBuffer<3 /* static allocation of 3 bytes  using template */> buffer;
+	StringBuffer<3> buffer; // static allocation
 	buffer.empty(); // -> return bool true
 	buffer.append('1'); // -> return bool true
 	buffer[0]; // -> return byte '1'
