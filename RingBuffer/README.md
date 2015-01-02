@@ -1,4 +1,4 @@
-# arduino-ringbuffer
+# RingBuffer
 
 Simple RingBuffer for arduino, providing a StringBuffer container with no dynamic memory allocation.
 The purpose is to avoid heap fragmentation, out of memory crashes with multiple malloc/free new/delete.
