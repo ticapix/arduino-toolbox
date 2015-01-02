@@ -2,10 +2,12 @@ language: cpp
 compiler:
 - gcc
 before_install:
-- sudo apt-get update
-- sudo apt-get install libgtest-dev
+- sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+- sudo apt-get -qq update
+install:
+- sudo apt-get -qq install libgtest-dev
 - "cd /usr/src/gtest && sudo cmake . && sudo cmake --build . && sudo mv libg* /usr/local/lib/ ; cd -"
-- sudo apt-get install google-mock
+- sudo apt-get -qq install google-mock
 - "cd /usr/src/gmock && sudo cmake . && sudo cmake --build . && sudo mv libg* /usr/local/lib/ ; cd -"
 - sudo apt-get install gcc-4.8 g++-4.8
 - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.8 90
