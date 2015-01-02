@@ -8,12 +8,9 @@ before_install:
 - sudo apt-get install google-mock
 - "cd /usr/src/gmock && sudo cmake . && sudo cmake --build . && sudo mv libg* /usr/local/lib/ ; cd -"
 script:
-- pushd .
-- cd RingBuffer/test
+- cd ${TRAVIS_BUILD_DIR}/RingBuffer/test
 - cmake .
 - make
-- popd
-- cd AsyncComm/test
+- cd ${TRAVIS_BUILD_DIR}/AsyncComm/test
 - cmake .
 - make
-- popd
