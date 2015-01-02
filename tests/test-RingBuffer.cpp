@@ -1,9 +1,6 @@
 #include <gtest/gtest.h>
 
-// define some type to the closest one available on arduino
-typedef uint8_t byte;
-typedef std::string String;
-
+#include <Arduino.h>
 #include <RingBuffer.h>
 
 TEST(StringBuffer, append) {

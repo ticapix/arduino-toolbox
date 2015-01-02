@@ -26,6 +26,8 @@ add_executable(tests
   test-RingBuffer.cpp
   )
 
+add_test(AllTests tests)
+
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -g -ansi -Wno-deprecated -std=c++11")
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
@@ -35,5 +37,3 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../AsyncComm/)
 target_link_libraries(tests ${GTEST_BOTH_LIBRARIES})
 target_link_libraries(tests ${GMOCK_LIBRARIES})
 target_link_libraries(tests ${CMAKE_THREAD_LIBS_INIT})
-
-add_test(AllTests tests)

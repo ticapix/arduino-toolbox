@@ -1,6 +1,8 @@
 #ifndef __ASYNC_COMM_H__
 #define __ASYNC_COMM_H__
 
+#include <Arduino.h>
+
 #ifndef ASYNC_COMM_TIMEOUT_MS
 #define ASYNC_COMM_TIMEOUT_MS 500
 #endif
@@ -9,11 +11,12 @@
 #define ULONG_MAX ((1 << 8) * sizeof(unsigned long))
 #endif
 
+
 /*
  * DECLARATION
  */
 
-template<typename COMM, int BUFFER_SIZE = 1024>
+template<typename COMM, uint16_t BUFFER_SIZE = 1024>
 class AsyncComm {
 public:
 	typedef StringBuffer<BUFFER_SIZE> Buffer;
@@ -44,12 +47,12 @@ private:
  * IMPLEMENTATION
  */
 
-template<typename COMM, int BUFFER_SIZE>
+template<typename COMM, uint16_t BUFFER_SIZE>
 AsyncComm<COMM, BUFFER_SIZE>::AsyncComm(COMM& serial, CallBacks& clbks) :
 		_serial(serial), _clbks(clbks), _is_executing(false), _exec_start(0) {
 }
 
-template<typename COMM, int BUFFER_SIZE>
+template<typename COMM, uint16_t BUFFER_SIZE>
 void AsyncComm<COMM, BUFFER_SIZE>::tick() {
 	// read all avaiable data
 	while (_serial.available() && !_buff.full()) {
@@ -77,7 +80,7 @@ void AsyncComm<COMM, BUFFER_SIZE>::tick() {
 	}
 }
 
-template<typename COMM, int BUFFER_SIZE>
+template<typename COMM, uint16_t BUFFER_SIZE>
 bool AsyncComm<COMM, BUFFER_SIZE>::exec(const void* str, size_t len) {
 	// if already executing a command
 	if (_is_executing) {
