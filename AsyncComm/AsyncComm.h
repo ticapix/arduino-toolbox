@@ -16,6 +16,10 @@ enum EvtType {
 #define ASYNC_COMM_TIMEOUT_MS 500
 #endif
 
+#ifndef ULONG_MAX
+#define ULONG_MAX ((1 << 8) * sizeof(unsigned long))
+#endif
+
 template<typename T>
 class AsyncComm {
   public:
@@ -30,7 +34,8 @@ class AsyncComm {
     AsyncComm(T& serial, CallBacks& clbks) :
       _serial(serial),
       _clbks(clbks),
-      _is_executing(false)
+      _is_executing(false),
+      _exec_start(0)
     {
     }
 
@@ -60,7 +65,7 @@ class AsyncComm {
       }
     }
 
-    bool exec(const byte* str, size_t len) {
+    bool exec(const void* str, size_t len) {
       // if already executing a command
       if (_is_executing) {
         return false;

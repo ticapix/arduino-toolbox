@@ -14,10 +14,10 @@ using ::testing::Invoke;
 
 class MockSerial {
 public:
-  
+
   MOCK_METHOD0(read, int());
   MOCK_METHOD0(available, int());
-  MOCK_METHOD2(write, size_t(const byte*, size_t));
+  MOCK_METHOD2(write, size_t(const void*, size_t));
 
   MockSerial() {
     ON_CALL(*this, available()).WillByDefault(Return(0));
@@ -38,7 +38,16 @@ struct MockCallBacks : public AsyncComm<MockSerial>::CallBacks {
 
 class AsyncCommTest : public testing::Test { 
 public:
-  
+	size_t fakeSerialDataIn(std::string str) {
+		Sequence s;
+		for (size_t i = 0; i < str.size(); ++i) {
+			EXPECT_CALL(serial, available()).InSequence(s).WillOnce(Return(str.length() - i));
+		    EXPECT_CALL(serial, read()).InSequence(s).WillOnce(Return(str[i]));
+		}
+		EXPECT_CALL(serial, available()).InSequence(s).WillRepeatedly(Return(0));
+		return str.length();
+	}
+
   MockSerial serial;
   MockCallBacks callbacks;
 };
@@ -64,51 +73,32 @@ TEST_F(AsyncCommTest, one_tick_no_data) {
 }
 
 
+
 TEST_F(AsyncCommTest, one_tick_event) {
   Sequence s;
   AsyncComm<MockSerial> comm(serial, callbacks);
 
-  std::string msg("1234");
-  for (size_t i = 0; i < msg.size(); ++i) {
-    EXPECT_CALL(serial, available()).InSequence(s).WillOnce(Return(msg.length() - i));  
-    EXPECT_CALL(serial, read()).InSequence(s).WillOnce(Return(msg[i]));
-  }
-  EXPECT_CALL(serial, available()).InSequence(s).WillRepeatedly(Return(0));
+  size_t len = fakeSerialDataIn("1234");
   EXPECT_CALL(callbacks, clbk_event(_)).WillOnce(WithArgs<0>(Invoke([&](StringBuffer<ASYNC_COMM_BUFFER_SIZE>& buff) {
-	  ASSERT_EQ(msg.length(), buff.length());
-	  ASSERT_TRUE(ArraysMatch(msg.c_str(), reinterpret_cast<const char*>(buff.buffer()), msg.length()));
+	  ASSERT_EQ(len, buff.length());
+	  ASSERT_TRUE(ArraysMatch("1234", reinterpret_cast<const char*>(buff.buffer()), len));
 	})));
-  
+
   comm.tick();
 }
 
 TEST_F(AsyncCommTest, exec_tick) {
   Sequence s;
   AsyncComm<MockSerial> comm(serial, callbacks);
-  {
-    std::string msg("AT\r\n");
-    EXPECT_CALL(serial, write(_, msg.length()));
-    // send command
-    ASSERT_TRUE(comm.exec(reinterpret_cast<const byte*>(msg.c_str()), msg.length()));
-    // expect to fail because first command has not completed nor timeout
-    ASSERT_FALSE(comm.exec(reinterpret_cast<const byte*>(""), 0));
-  }
-  {
-    std::string msg("OK");
-    for (size_t i = 0; i < msg.size(); ++i) {
-      EXPECT_CALL(serial, available()).InSequence(s).WillOnce(Return(msg.length() - i));  
-      EXPECT_CALL(serial, read()).InSequence(s).WillOnce(Return(msg[i]));
-    }
-    EXPECT_CALL(serial, available()).InSequence(s).WillRepeatedly(Return(0));
-  }
+  std::string cmd("AT\r\n");
+  EXPECT_CALL(serial, write(_, cmd.length()));
+  // send command
+  ASSERT_TRUE(comm.exec(cmd.c_str(), cmd.length()));
+  // expect to fail because first command has not completed nor timeout
+  ASSERT_FALSE(comm.exec("", 0));
+
+  fakeSerialDataIn("OK");
   comm.tick();
-  {
-    std::string msg("\r\n");
-    for (size_t i = 0; i < msg.size(); ++i) {
-      EXPECT_CALL(serial, available()).InSequence(s).WillOnce(Return(msg.length() - i));  
-      EXPECT_CALL(serial, read()).InSequence(s).WillOnce(Return(msg[i]));
-    }
-    EXPECT_CALL(serial, available()).InSequence(s).WillRepeatedly(Return(0));
-  }
+  fakeSerialDataIn("\r\n");
   comm.tick();
 }
