@@ -26,10 +26,10 @@ public:
 };
 
 struct MockCallBacks : public AsyncComm<MockSerial>::CallBacks {
-  MOCK_METHOD1(clbk_executing, bool(StringBuffer<ASYNC_COMM_BUFFER_SIZE>&));
-  MOCK_METHOD1(clbk_timeout, void(StringBuffer<ASYNC_COMM_BUFFER_SIZE>&));
-  MOCK_METHOD1(clbk_buffer_overflow, void(StringBuffer<ASYNC_COMM_BUFFER_SIZE>&));
-  MOCK_METHOD1(clbk_event, void(StringBuffer<ASYNC_COMM_BUFFER_SIZE>&));
+  MOCK_METHOD1(clbk_executing, bool(AsyncComm<MockSerial>::Buffer&));
+  MOCK_METHOD1(clbk_timeout, void(AsyncComm<MockSerial>::Buffer&));
+  MOCK_METHOD1(clbk_buffer_overflow, void(AsyncComm<MockSerial>::Buffer&));
+  MOCK_METHOD1(clbk_event, void(AsyncComm<MockSerial>::Buffer&));
 
   MockCallBacks() {
     ON_CALL(*this, clbk_executing(_)).WillByDefault(Return(true));
@@ -73,19 +73,19 @@ TEST_F(AsyncCommTest, one_tick_no_data) {
 }
 
 
-
 TEST_F(AsyncCommTest, one_tick_event) {
   Sequence s;
   AsyncComm<MockSerial> comm(serial, callbacks);
 
   size_t len = fakeSerialDataIn("1234");
-  EXPECT_CALL(callbacks, clbk_event(_)).WillOnce(WithArgs<0>(Invoke([&](StringBuffer<ASYNC_COMM_BUFFER_SIZE>& buff) {
+  EXPECT_CALL(callbacks, clbk_event(_)).WillOnce(WithArgs<0>(Invoke([&](AsyncComm<MockSerial>::Buffer &buff) {
 	  ASSERT_EQ(len, buff.length());
 	  ASSERT_TRUE(ArraysMatch("1234", reinterpret_cast<const char*>(buff.buffer()), len));
 	})));
 
   comm.tick();
 }
+
 
 TEST_F(AsyncCommTest, exec_tick) {
   Sequence s;

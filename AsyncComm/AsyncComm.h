@@ -8,10 +8,6 @@ enum EvtType {
   EVENT,
 };
 
-#ifndef ASYNC_COMM_BUFFER_SIZE
-#define ASYNC_COMM_BUFFER_SIZE 1024
-#endif
-
 #ifndef ASYNC_COMM_TIMEOUT_MS
 #define ASYNC_COMM_TIMEOUT_MS 500
 #endif
@@ -20,18 +16,19 @@ enum EvtType {
 #define ULONG_MAX ((1 << 8) * sizeof(unsigned long))
 #endif
 
-template<typename T>
+template<typename COMM, int BUFFER_SIZE = 1024>
 class AsyncComm {
   public:
-  
+    typedef StringBuffer<BUFFER_SIZE> Buffer;
+
   struct CallBacks {
-    virtual bool clbk_executing(StringBuffer<ASYNC_COMM_BUFFER_SIZE>&) = 0;
-    virtual void clbk_timeout(StringBuffer<ASYNC_COMM_BUFFER_SIZE>&) = 0;
-    virtual void clbk_buffer_overflow(StringBuffer<ASYNC_COMM_BUFFER_SIZE>&) = 0;
-    virtual void clbk_event(StringBuffer<ASYNC_COMM_BUFFER_SIZE>&) = 0;
+    virtual bool clbk_executing(Buffer&) = 0;
+    virtual void clbk_timeout(Buffer&) = 0;
+    virtual void clbk_buffer_overflow(Buffer&) = 0;
+    virtual void clbk_event(Buffer&) = 0;
   };
 
-    AsyncComm(T& serial, CallBacks& clbks) :
+    AsyncComm(COMM& serial, CallBacks& clbks) :
       _serial(serial),
       _clbks(clbks),
       _is_executing(false),
@@ -84,9 +81,9 @@ class AsyncComm {
 
  private:
     // function pointers
-    T& _serial;
+    COMM& _serial;
     CallBacks& _clbks;
-    StringBuffer<ASYNC_COMM_BUFFER_SIZE> _buff;
+    Buffer _buff;
     bool _is_executing;
     unsigned long _exec_start;
 };
