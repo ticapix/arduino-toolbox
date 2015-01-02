@@ -7,6 +7,8 @@ before_install:
 - "cd /usr/src/gtest && sudo cmake . && sudo cmake --build . && sudo mv libg* /usr/local/lib/ ; cd -"
 - sudo apt-get install google-mock
 - "cd /usr/src/gmock && sudo cmake . && sudo cmake --build . && sudo mv libg* /usr/local/lib/ ; cd -"
+- sudo apt-get install gcc-4.8 g++-4.8
+- sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.8 90
 script:
 - cd ${TRAVIS_BUILD_DIR}/RingBuffer/test
 - cmake .
