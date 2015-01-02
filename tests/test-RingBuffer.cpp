@@ -152,8 +152,3 @@ TEST(RingBuffer, memmove_append) {
   ASSERT_EQ(arr[1], 4);
   ASSERT_EQ(arr[2], 5);
 }
-
-int main(int argc, char* argv[]) {
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}

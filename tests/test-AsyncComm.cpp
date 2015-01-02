@@ -112,9 +112,3 @@ TEST_F(AsyncCommTest, exec_tick) {
   }
   comm.tick();
 }
-
-
-int main(int argc, char* argv[]) {
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}

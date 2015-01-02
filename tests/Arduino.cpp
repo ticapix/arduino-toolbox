@@ -1,11 +1,5 @@
-#ifndef __ARDUINO_HH__
-#define __ARDUINO_HH__
-
 #include <chrono>
 
-// define some type to the closest one available on arduino
-typedef uint8_t byte;
-typedef std::string String;
 using namespace std::chrono;
 
 unsigned long millis() {
@@ -14,5 +8,3 @@ unsigned long millis() {
   auto millis = duration_cast<milliseconds>(since_epoch);
   return millis.count();
 }
-
-#endif
