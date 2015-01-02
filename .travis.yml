@@ -18,5 +18,5 @@ install:
 script:
 - cd ${TRAVIS_BUILD_DIR}/tests
 - cmake .
-- make
-- ./tests
+- make test
+- ctest
