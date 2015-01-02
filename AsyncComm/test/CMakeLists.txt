@@ -27,7 +27,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -g -ansi -Wno-deprecated -std=c++1
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/..)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../libraries/RingBuffer/)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../RingBuffer/)
 
 target_link_libraries(tests ${GTEST_BOTH_LIBRARIES})
 target_link_libraries(tests ${GMOCK_LIBRARIES})
