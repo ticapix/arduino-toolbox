@@ -80,7 +80,7 @@ TEST_F(AsyncCommTest, one_tick_event) {
 	EXPECT_CALL(callbacks, clbk_event(_)).WillOnce(
 			WithArgs<0>(
 					Invoke(
-							[&](AsyncCommCallBacks<>::Buffer &buff) {
+							[&](MockCallBacks::Buffer &buff) {
 								ASSERT_EQ(len, buff.length());
 								ASSERT_TRUE(ArraysMatch("1234", reinterpret_cast<const char*>(buff.buffer()), len));
 							})));
@@ -101,7 +101,7 @@ TEST_F(AsyncCommTest, exec_tick) {
 	comm.tick();
 	len += fakeSerialDataIn("\r\n");
 	EXPECT_CALL(callbacks, clbk_executing(_)).WillOnce(
-			DoAll(WithArgs<0>(Invoke([&](AsyncCommCallBacks<>::Buffer &buff) {
+			DoAll(WithArgs<0>(Invoke([&](MockCallBacks::Buffer &buff) {
 				ASSERT_EQ(len, buff.length());
 				ASSERT_EQ(buff.indexOf("OK\r\n"), 0);
 				ASSERT_EQ(buff.pop_firsts(len), len);
