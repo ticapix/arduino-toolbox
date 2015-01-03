@@ -15,20 +15,21 @@
 /*
  * DECLARATION
  */
-
-template<typename COMM, uint16_t BUFFER_SIZE = 1024>
-class AsyncComm {
-public:
+template<uint16_t BUFFER_SIZE = 1024>
+struct AsyncCommCallBacks {
 	typedef StringBuffer<BUFFER_SIZE> Buffer;
 
-	struct CallBacks {
-		virtual bool clbk_executing(Buffer&) = 0;
-		virtual void clbk_timeout(Buffer&) = 0;
-		virtual void clbk_buffer_overflow(Buffer&) = 0;
-		virtual void clbk_event(Buffer&) = 0;
-	};
+	virtual bool clbk_executing(Buffer&) = 0;
+	virtual void clbk_timeout(Buffer&) = 0;
+	virtual void clbk_buffer_overflow(Buffer&) = 0;
+	virtual void clbk_event(Buffer&) = 0;
+};
 
-	AsyncComm(COMM& serial, CallBacks& clbks);
+
+template<typename COMM, typename CALLBACKS>
+class AsyncComm {
+public:
+	AsyncComm(COMM& serial, CALLBACKS& clbks);
 
 	void tick();
 
@@ -37,7 +38,8 @@ public:
 private:
 	// function pointers
 	COMM& _serial;
-	CallBacks& _clbks;
+	CALLBACKS& _clbks;
+	typedef typename CALLBACKS::Buffer Buffer;
 	Buffer _buff;
 	bool _is_executing;
 	unsigned long _exec_start;
@@ -47,13 +49,13 @@ private:
  * IMPLEMENTATION
  */
 
-template<typename COMM, uint16_t BUFFER_SIZE>
-AsyncComm<COMM, BUFFER_SIZE>::AsyncComm(COMM& serial, CallBacks& clbks) :
+template<typename COMM, typename CALLBACKS>
+AsyncComm<COMM, CALLBACKS>::AsyncComm(COMM& serial, CALLBACKS& clbks) :
 		_serial(serial), _clbks(clbks), _is_executing(false), _exec_start(0) {
 }
 
-template<typename COMM, uint16_t BUFFER_SIZE>
-void AsyncComm<COMM, BUFFER_SIZE>::tick() {
+template<typename COMM, typename CALLBACKS>
+void AsyncComm<COMM, CALLBACKS>::tick() {
 	// read all avaiable data
 	while (_serial.available() && !_buff.full()) {
 		_buff.append(_serial.read());
@@ -80,8 +82,8 @@ void AsyncComm<COMM, BUFFER_SIZE>::tick() {
 	}
 }
 
-template<typename COMM, uint16_t BUFFER_SIZE>
-bool AsyncComm<COMM, BUFFER_SIZE>::exec(const void* str, size_t len) {
+template<typename COMM, typename CALLBACKS>
+bool AsyncComm<COMM, CALLBACKS>::exec(const void* str, size_t len) {
 	// if already executing a command
 	if (_is_executing) {
 		return false;

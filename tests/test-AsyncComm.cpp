@@ -25,11 +25,11 @@ public:
 	}
 };
 
-struct MockCallBacks: public AsyncComm<MockSerial>::CallBacks {
-	MOCK_METHOD1(clbk_executing, bool(AsyncComm<MockSerial>::Buffer&));
-	MOCK_METHOD1(clbk_timeout, void(AsyncComm<MockSerial>::Buffer&));
-	MOCK_METHOD1(clbk_buffer_overflow, void(AsyncComm<MockSerial>::Buffer&));
-	MOCK_METHOD1(clbk_event, void(AsyncComm<MockSerial>::Buffer&));
+struct MockCallBacks: public AsyncCommCallBacks<> {
+	MOCK_METHOD1(clbk_executing, bool(AsyncCommCallBacks<>::Buffer&));
+	MOCK_METHOD1(clbk_timeout, void(AsyncCommCallBacks<>::Buffer&));
+	MOCK_METHOD1(clbk_buffer_overflow, void(AsyncCommCallBacks<>::Buffer&));
+	MOCK_METHOD1(clbk_event, void(AsyncCommCallBacks<>::Buffer&));
 
 	MockCallBacks() {
 		ON_CALL(*this, clbk_executing(_)).WillByDefault(Return(true));
@@ -68,19 +68,19 @@ template<typename T>
 }
 
 TEST_F(AsyncCommTest, one_tick_no_data) {
-	AsyncComm<MockSerial> comm(serial, callbacks);
+	AsyncComm<MockSerial, MockCallBacks> comm(serial, callbacks);
 	EXPECT_CALL(serial, available());
 	comm.tick();
 }
 
 TEST_F(AsyncCommTest, one_tick_event) {
-	AsyncComm<MockSerial> comm(serial, callbacks);
+	AsyncComm<MockSerial, MockCallBacks> comm(serial, callbacks);
 
 	size_t len = fakeSerialDataIn("1234");
 	EXPECT_CALL(callbacks, clbk_event(_)).WillOnce(
 			WithArgs<0>(
 					Invoke(
-							[&](AsyncComm<MockSerial>::Buffer &buff) {
+							[&](AsyncCommCallBacks<>::Buffer &buff) {
 								ASSERT_EQ(len, buff.length());
 								ASSERT_TRUE(ArraysMatch("1234", reinterpret_cast<const char*>(buff.buffer()), len));
 							})));
@@ -88,7 +88,7 @@ TEST_F(AsyncCommTest, one_tick_event) {
 }
 
 TEST_F(AsyncCommTest, exec_tick) {
-	AsyncComm<MockSerial> comm(serial, callbacks);
+	AsyncComm<MockSerial, MockCallBacks> comm(serial, callbacks);
 	std::string cmd("AT\r\n");
 	EXPECT_CALL(serial, write(_, cmd.length()));
 	// send command
@@ -101,7 +101,7 @@ TEST_F(AsyncCommTest, exec_tick) {
 	comm.tick();
 	len += fakeSerialDataIn("\r\n");
 	EXPECT_CALL(callbacks, clbk_executing(_)).WillOnce(
-			DoAll(WithArgs<0>(Invoke([&](AsyncComm<MockSerial>::Buffer &buff) {
+			DoAll(WithArgs<0>(Invoke([&](AsyncCommCallBacks<>::Buffer &buff) {
 				ASSERT_EQ(len, buff.length());
 				ASSERT_EQ(buff.indexOf("OK\r\n"), 0);
 				ASSERT_EQ(buff.pop_firsts(len), len);
