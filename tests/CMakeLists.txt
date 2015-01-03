@@ -1,7 +1,3 @@
-cmake_minimum_required (VERSION 2.6)
-enable_testing()
-project(test-arduino-libs C CXX)
-
 find_package(Threads REQUIRED)
 find_package(GTest)
 
