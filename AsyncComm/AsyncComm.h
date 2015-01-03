@@ -15,7 +15,7 @@
 /*
  * DECLARATION
  */
-template<uint16_t BUFFER_SIZE = 1024>
+template<uint16_t BUFFER_SIZE>
 struct AsyncCommCallBacks {
 	typedef StringBuffer<BUFFER_SIZE> Buffer;
 
