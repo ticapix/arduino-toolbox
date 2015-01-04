@@ -11,7 +11,8 @@ The purpose is to avoid heap fragmentation, out of memory crashes with multiple 
 	buffer.append('1'); // -> return bool true |1| | |
 	buffer[0]; // -> return byte '1'
 	buffer.append("23"); // -> return bool true |1|2|3|
-	buffer.indexOf("23"); // -> return uint16_t 1
+    buffer.starts_with("23"); // -> return bool true |1|2|3|
+	buffer.index_of("23"); // -> return uint16_t 1
 	buffer.append('4'); // -> return bool false
 	buffer.full(); // -> return bool true
 	buffer.pop_first(); // return byte '1' | |2|3|

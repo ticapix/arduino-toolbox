@@ -10,10 +10,18 @@ TEST(StringBuffer, capacity) {
 
 TEST(StringBuffer, append) {
 	StringBuffer<2> buff;
-	ASSERT_EQ(buff.indexOf("1"), -1);
+	ASSERT_EQ(buff.index_of("1"), -1);
 	ASSERT_TRUE(buff.append('1'));
-	ASSERT_EQ(buff.indexOf("1"), 0);
+	ASSERT_EQ(buff.index_of("1"), 0);
 }
+
+TEST(StringBuffer, starts_with) {
+	StringBuffer<4> buff;
+	ASSERT_TRUE(buff.append("1234"));
+	ASSERT_EQ(buff.pop_first(), '1');
+	ASSERT_TRUE(buff.starts_with("234"));
+}
+
 
 TEST(StringBuffer, pop_first) {
 	StringBuffer<2> buff;
@@ -63,36 +71,36 @@ TEST(StringBuffer, accessor) {
 	ASSERT_EQ(buff.length(), 1);
 }
 
-TEST(StringBuffer, indexOf) {
+TEST(StringBuffer, index_of) {
 	StringBuffer<10> buff;
 	for (auto c : { '1', '2', '3', '4', 'O', 'K', 'A', 'Y', '5', '6' })
 		ASSERT_TRUE(buff.append(c));
-	ASSERT_EQ(buff.indexOf("1"), 0);
-	ASSERT_EQ(buff.indexOf("2"), 1);
-	ASSERT_EQ(buff.indexOf("12"), 0);
-	ASSERT_EQ(buff.indexOf("23"), 1);
-	ASSERT_EQ(buff.indexOf("34"), 2);
-	ASSERT_EQ(buff.indexOf("OKAY"), 4);
+	ASSERT_EQ(buff.index_of("1"), 0);
+	ASSERT_EQ(buff.index_of("2"), 1);
+	ASSERT_EQ(buff.index_of("12"), 0);
+	ASSERT_EQ(buff.index_of("23"), 1);
+	ASSERT_EQ(buff.index_of("34"), 2);
+	ASSERT_EQ(buff.index_of("OKAY"), 4);
 	ASSERT_EQ(buff.pop_first(), '1');
 	ASSERT_EQ(buff.pop_first(), '2');
-	ASSERT_EQ(buff.indexOf("OKAY"), 2);
+	ASSERT_EQ(buff.index_of("OKAY"), 2);
 	{
-		uint16_t pos = buff.indexOf("OKAY") + 4;
+		uint16_t pos = buff.index_of("OKAY") + 4;
 		while (pos--)
 			buff.pop_first();
 		ASSERT_EQ(buff.length(), 2);
 	}
-	ASSERT_EQ(buff.indexOf("56"), 0);
+	ASSERT_EQ(buff.index_of("56"), 0);
 }
 
-TEST(StringBuffer, indexOf_offset) {
+TEST(StringBuffer, index_of_offset) {
 	StringBuffer<10> buff;
 	for (auto c : { '1', '2', '3', '1', '2', '3', '1', '2', '3', '1' })
 		ASSERT_TRUE(buff.append(c));
 	int pos = 0;
 	uint16_t count = 0;
 	while (true) {
-		pos = buff.indexOf("1", pos);
+		pos = buff.index_of("1", pos);
 		if (pos == -1)
 			break;
 		ASSERT_EQ(buff[pos], '1');

@@ -57,7 +57,9 @@ public:
 
 	bool append(String str);
 
-	int indexOf(String substr, uint16_t offset = 0);
+	int index_of(String substr, uint16_t offset = 0);
+
+	bool starts_with(String substr);
 };
 
 /*
@@ -184,7 +186,7 @@ bool StringBuffer<Size>::append(String str) {
 }
 
 template<uint16_t Size>
-int StringBuffer<Size>::indexOf(String substr, uint16_t offset) {
+int StringBuffer<Size>::index_of(String substr, uint16_t offset) {
 	if (offset > this->length())
 		return -1;
 	if (substr.length() + offset > this->length())
@@ -198,6 +200,11 @@ int StringBuffer<Size>::indexOf(String substr, uint16_t offset) {
 			return i;
 	}
 	return -1;
+}
+
+template<uint16_t Size>
+bool StringBuffer<Size>::starts_with(String substr) {
+	return (this->index_of(substr) == 0);
 }
 
 #endif

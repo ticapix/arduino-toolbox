@@ -142,7 +142,7 @@ TEST_F(AsyncCommTest, exec_tick) {
 	EXPECT_CALL(callbacks, clbk_executing(_)).WillOnce(
 			DoAll(WithArgs<0>(Invoke([&](decltype(callbacks)::Buffer &buff) {
 				ASSERT_EQ(len, buff.length());
-				ASSERT_EQ(buff.indexOf("OK\r\n"), 0);
+				ASSERT_EQ(buff.index_of("OK\r\n"), 0);
 				ASSERT_EQ(buff.pop_firsts(len), len);
 			})), Return(false)));
 	comm.tick();
