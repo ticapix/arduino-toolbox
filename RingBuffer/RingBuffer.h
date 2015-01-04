@@ -23,6 +23,8 @@ public:
 	void clear();
 
 	uint16_t length() const;
+	
+	static uint16_t capacity();
 
 	const T operator[](uint16_t idx) const;
 
@@ -96,6 +98,11 @@ void RingBuffer<Size, T>::clear() {
 template<uint16_t Size, typename T>
 uint16_t RingBuffer<Size, T>::length() const {
 	return _length;
+}
+
+template<uint16_t Size, typename T>
+uint16_t RingBuffer<Size, T>::capacity() {
+	return Size;
 }
 
 template<uint16_t Size, typename T>

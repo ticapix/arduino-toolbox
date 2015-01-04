@@ -3,6 +3,11 @@
 #include <Arduino.h>
 #include <RingBuffer.h>
 
+TEST(StringBuffer, capacity) {
+	StringBuffer<2> buff;
+	ASSERT_EQ(decltype(buff)::capacity(), 2);
+}
+
 TEST(StringBuffer, append) {
 	StringBuffer<2> buff;
 	ASSERT_EQ(buff.indexOf("1"), -1);
