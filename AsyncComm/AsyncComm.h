@@ -71,10 +71,10 @@ void AsyncComm<COMM, CALLBACKS>::tick() {
 		_is_executing = false;
 	}
 	// if command has not completed AND buffer is full
-	if (_is_executing && _buff.full()) {
-		_clbks.clbk_buffer_overflow(_buff);
-		if (_buff.full())
-			_buff.pop_first();
+	if (_buff.full()) {
+	  _clbks.clbk_buffer_overflow(_buff);
+	  if (_buff.full())
+	    _buff.pop_first();
 	}
 	// if not expecting command result AND buffer not empty
 	if (!_is_executing && !_buff.empty()) {

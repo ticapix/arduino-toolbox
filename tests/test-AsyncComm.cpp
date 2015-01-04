@@ -53,8 +53,8 @@ public:
 		return str.length();
 	}
 
-	MockSerial serial;
-	MockCallBacks<64> callbacks;
+  MockSerial serial;
+  MockCallBacks<64> callbacks;
 };
 
 template<typename T>
@@ -74,6 +74,42 @@ TEST_F(AsyncCommTest, one_tick_no_data) {
 	AsyncComm<MockSerial, decltype(callbacks)> comm(serial, callbacks);
 	EXPECT_CALL(serial, available());
 	comm.tick();
+}
+
+TEST_F(AsyncCommTest, one_tick_timeout) {
+  AsyncComm<MockSerial, decltype(callbacks)> comm(serial, callbacks);
+
+  EXPECT_CALL(serial, write(_, _));
+  ASSERT_TRUE(comm.exec("", 0));
+  const unsigned long timeout = ASYNC_COMM_TIMEOUT_MS + 1;
+  unsigned long start = millis();
+  bool has_timeout = false;
+
+  EXPECT_CALL(callbacks, clbk_executing(_)).WillRepeatedly(Return(true));
+  EXPECT_CALL(callbacks, clbk_timeout(_)).WillOnce(Invoke([&has_timeout](decltype(callbacks)::Buffer &buff) {
+	has_timeout = true;
+      }));
+  EXPECT_CALL(serial, available()).WillRepeatedly(Return(0));
+  
+  while(millis() - start < timeout) {
+    comm.tick();
+  }
+  ASSERT_TRUE(has_timeout);
+}
+
+TEST_F(AsyncCommTest, one_tick_buffer_overflow) {
+  AsyncComm<MockSerial, decltype(callbacks)> comm(serial, callbacks);
+
+  std::string str;
+  bool has_overflow = false;
+  str.resize(decltype(callbacks)::Buffer::capacity());
+  fakeSerialDataIn(str);
+  EXPECT_CALL(callbacks, clbk_event(_));
+  EXPECT_CALL(callbacks, clbk_buffer_overflow(_)).WillOnce(Invoke([&has_overflow](decltype(callbacks)::Buffer &buff) {
+	has_overflow = true;
+      }));
+  comm.tick();
+  ASSERT_TRUE(has_overflow);
 }
 
 TEST_F(AsyncCommTest, one_tick_event) {
