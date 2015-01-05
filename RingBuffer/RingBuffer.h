@@ -36,6 +36,8 @@ public:
 
 	const T* buffer();
 
+	static const uint16_t END = -1;
+
 protected:
 
 	bool _is_continuous() const;
@@ -48,11 +50,16 @@ protected:
 	uint16_t _capacity;
 };
 
+template<uint16_t Size, typename T>
+const uint16_t RingBuffer<Size, T>::END;
+
+
 template<uint16_t Size>
 class StringBuffer: public RingBuffer<Size, byte> {
 
 public:
 
+	using RingBuffer<Size, byte>::END;
 	using RingBuffer<Size, byte>::append;
 
 	bool append(String str);
@@ -188,9 +195,9 @@ bool StringBuffer<Size>::append(String str) {
 template<uint16_t Size>
 int StringBuffer<Size>::index_of(String substr, uint16_t offset) {
 	if (offset > this->length())
-		return -1;
+		return StringBuffer<Size>::END;
 	if (substr.length() + offset > this->length())
-		return -1;
+		return StringBuffer<Size>::END;
 	for (uint16_t i = offset; i <= this->length() - substr.length(); ++i) {
 		bool match = true;
 		for (uint16_t j = 0; j < substr.length() && match; ++j) {
@@ -199,7 +206,7 @@ int StringBuffer<Size>::index_of(String substr, uint16_t offset) {
 		if (match)
 			return i;
 	}
-	return -1;
+	return StringBuffer<Size>::END;
 }
 
 template<uint16_t Size>

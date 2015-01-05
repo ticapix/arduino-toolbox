@@ -10,7 +10,7 @@ TEST(StringBuffer, capacity) {
 
 TEST(StringBuffer, append) {
 	StringBuffer<2> buff;
-	ASSERT_EQ(buff.index_of("1"), -1);
+	ASSERT_EQ(buff.index_of("1"), decltype(buff)::END);
 	ASSERT_TRUE(buff.append('1'));
 	ASSERT_EQ(buff.index_of("1"), 0);
 }
@@ -71,6 +71,11 @@ TEST(StringBuffer, accessor) {
 	ASSERT_EQ(buff.length(), 1);
 }
 
+TEST(StringBuffer, index_of_not_found) {
+	StringBuffer<10> buff;
+	ASSERT_EQ(buff.index_of("0"), decltype(buff)::END);
+}
+
 TEST(StringBuffer, index_of) {
 	StringBuffer<10> buff;
 	for (auto c : { '1', '2', '3', '4', 'O', 'K', 'A', 'Y', '5', '6' })
@@ -101,7 +106,7 @@ TEST(StringBuffer, index_of_offset) {
 	uint16_t count = 0;
 	while (true) {
 		pos = buff.index_of("1", pos);
-		if (pos == -1)
+		if (pos == decltype(buff)::END)
 			break;
 		ASSERT_EQ(buff[pos], '1');
 		++pos;
