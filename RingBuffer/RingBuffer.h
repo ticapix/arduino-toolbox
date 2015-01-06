@@ -117,7 +117,7 @@ uint16_t RingBuffer<Size, T>::capacity() {
 template<uint16_t Size, typename T>
 const/* can't modify the returned value */T RingBuffer<Size, T>::operator[](
 		uint16_t idx) const {
-	if (idx > _length)
+	if (idx >= _length)
 		return _buffer[0]; // declared as undefined behavior for the user
 	return _buffer[(_start + idx) % _capacity];
 }
@@ -196,9 +196,7 @@ uint16_t StringBuffer<Size>::append(String str) {
 
 template<uint16_t Size>
 uint16_t StringBuffer<Size>::index_of(String substr, uint16_t offset) {
-	if (offset > this->length())
-		return StringBuffer<Size>::END;
-	if (substr.length() + offset > this->length())
+	if (substr.length() + offset >= this->length())
 		return StringBuffer<Size>::END;
 	for (uint16_t i = offset; i <= this->length() - substr.length(); ++i) {
 		bool match = true;
