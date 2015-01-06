@@ -124,6 +124,15 @@ TEST_F(AsyncCommTest, one_tick_event) {
 								ASSERT_TRUE(ArraysMatch("1234", reinterpret_cast<const char*>(buff.buffer()), len));
 							})));
 	comm.tick();
+	EXPECT_CALL(callbacks, clbk_event(_)).WillOnce(
+			WithArgs<0>(
+					Invoke(
+							[&](decltype(callbacks)::Buffer &buff) {
+								ASSERT_EQ(len, buff.length());
+								ASSERT_TRUE(ArraysMatch("1234", reinterpret_cast<const char*>(buff.buffer()), len));
+							})));
+	EXPECT_CALL(serial, write("", 0));
+	ASSERT_TRUE(comm.exec("", 0));
 }
 
 TEST_F(AsyncCommTest, exec_tick) {
