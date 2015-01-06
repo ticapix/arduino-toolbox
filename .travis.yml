@@ -32,7 +32,7 @@ script:
 after_success:
 - cd ${TRAVIS_BUILD_DIR}
 - find . | grep gc | xargs ls -l
-- lcov --directory . --no-checksum --capture --initial --output-file coverage.info
+- lcov --debug --directory . --capture --output-file coverage.info
 - lcov --remove coverage.info 'tests/*' '/usr/*' --output-file coverage.info
 - lcov --list coverage.info
 - coveralls-lcov --repo-token zWBScakuxIG31eWEQfdZz3x9tbMAZnzNd coverage.info
