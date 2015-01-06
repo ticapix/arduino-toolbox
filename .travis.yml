@@ -4,20 +4,28 @@ compiler:
 - gcc
 
 before_install:
+# for gcc with C++11 support
 - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
 - sudo apt-get -qq update
 
 install:
+# install GTest and GMock
 - sudo apt-get -qq install libgtest-dev
 - "cd /usr/src/gtest && sudo cmake . && sudo cmake --build . && sudo mv libg* /usr/local/lib/ ; cd -"
 - sudo apt-get -qq install google-mock
 - "cd /usr/src/gmock && sudo cmake . && sudo cmake --build . && sudo mv libg* /usr/local/lib/ ; cd -"
+# update to gcc with C++11 support
 - sudo apt-get -qq install gcc-4.9 g++-4.9
 - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.9 90
 - sudo update-alternatives --install /usr/bin/gcov gcov /usr/bin/gcov-4.9 90
-- sudo apt-get -qq install lcov
-- lcov --version
+# install latest LCOV
+- wget http://ftp.de.debian.org/debian/pool/main/l/lcov/lcov_1.11.orig.tar.gz
+- tar xf lcov_1.11.orig.tar.gz
+- sudo make -C lcov-1.11/ install
+#- sudo apt-get -qq install lcov
 - gem install coveralls-lcov
+- lcov --version
+- g++ --version
 
 before_script:
 - cd ${TRAVIS_BUILD_DIR}
@@ -26,7 +34,7 @@ before_script:
 script:
 - cd ${TRAVIS_BUILD_DIR}
 - cmake .
-- make
+- make VERBOSE=1
 - ctest --verbose
 
 after_success:
