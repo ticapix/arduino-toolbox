@@ -14,6 +14,7 @@ install:
 - "cd /usr/src/gmock && sudo cmake . && sudo cmake --build . && sudo mv libg* /usr/local/lib/ ; cd -"
 - sudo apt-get -qq install gcc-4.8 g++-4.8
 - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.8 90
+- sudo update-alternatives --install /usr/bin/gcov gcov /usr/bin/gcov-4.8 90
 - sudo pip install cpp-coveralls
 
 script:
