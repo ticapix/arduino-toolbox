@@ -22,8 +22,10 @@ TEST(StringBuffer, error_index_of) {
 	ASSERT_EQ(buff.append('B'), 1);
 	// try to find unexisting string
 	ASSERT_EQ(buff.index_of("B", 1), decltype(buff)::END);
+	ASSERT_EQ(buff.index_of("", 3), decltype(buff)::END);
 	buff.clear();
 	ASSERT_EQ(buff.index_of("", 0), decltype(buff)::END);
+	ASSERT_EQ(buff.index_of("", 2), decltype(buff)::END);
 }
 
 TEST(StringBuffer, capacity) {

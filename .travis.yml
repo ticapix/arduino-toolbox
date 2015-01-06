@@ -15,13 +15,18 @@ install:
 - sudo apt-get -qq install gcc-4.8 g++-4.8
 - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.8 90
 - sudo update-alternatives --install /usr/bin/gcov gcov /usr/bin/gcov-4.8 90
-- sudo pip install cpp-coveralls
+- sudo apt-get -qq install lcov
+- gem install coveralls-lcov
 
 script:
 - cd ${TRAVIS_BUILD_DIR}
 - cmake .
 - make
+- lcov --directory . --zerocounters
 - ctest --verbose
 
 after_success:
-- coveralls -t zWBScakuxIG31eWEQfdZz3x9tbMAZnzNd -i RingBuffer/ -i AsyncComm/
+- cd ${TRAVIS_BUILD_DIR}
+- lcov --directory . --capture --output-file coverage.info
+- lcov --remove coverage.info 'tests/*' '/usr/*' --output-file coverage.info
+- coveralls-lcov --repo-token zWBScakuxIG31eWEQfdZz3x9tbMAZnzNd coverage.info

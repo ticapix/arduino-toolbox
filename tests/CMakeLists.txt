@@ -42,11 +42,3 @@ target_link_libraries(tests ${GMOCK_LIBRARIES})
 target_link_libraries(tests ${CMAKE_THREAD_LIBS_INIT})
 
 add_test(AllTests tests)
-
-if (LOCAL_COVERAGE)
-  set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/CMakeModules)
-  if(CMAKE_COMPILER_IS_GNUCXX)
-    include(CodeCoverage)
-    setup_target_for_coverage(tests_coverage ctest coverage)
-  endif()
-endif()
