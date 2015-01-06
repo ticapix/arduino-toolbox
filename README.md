@@ -1,8 +1,6 @@
 # arduino-toolbox
 
-[![Build Status](https://travis-ci.org/ticapix/arduino-toolbox.svg)](https://travis-ci.org/ticapix/arduino-toolbox)
-
-[![Coverage Status](https://coveralls.io/repos/ticapix/arduino-toolbox/badge.png)](https://coveralls.io/r/ticapix/arduino-toolbox)
+[![Build Status](https://travis-ci.org/ticapix/arduino-toolbox.svg)](https://travis-ci.org/ticapix/arduino-toolbox) [![Coverage Status](https://coveralls.io/repos/ticapix/arduino-toolbox/badge.png)](https://coveralls.io/r/ticapix/arduino-toolbox)
 
 ##  [RingBuffer](/RingBuffer/)
 
