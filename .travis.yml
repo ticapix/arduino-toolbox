@@ -19,7 +19,6 @@ install:
 
 script:
 - cd ${TRAVIS_BUILD_DIR}
-- find . | grep gc
 - cmake .
 - make
 - ctest --verbose
