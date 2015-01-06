@@ -83,18 +83,18 @@ uint16_t RingBuffer<Size, T>::append(T c) {
 	if (full())
 		return 0;
 	_buffer[_end] = c;
-	_end = (_end + 1) % _capacity;
+	_end = (_end + 1) % capacity();
 	++_length;
 	return 1;
 }
 template<uint16_t Size, typename T>
 bool RingBuffer<Size, T>::full() const {
-	return _capacity == _length;
+	return capacity() == length();
 }
 
 template<uint16_t Size, typename T>
 bool RingBuffer<Size, T>::empty() const {
-	return _length == 0;
+	return length() == 0;
 }
 
 template<uint16_t Size, typename T>
@@ -117,9 +117,9 @@ uint16_t RingBuffer<Size, T>::capacity() {
 template<uint16_t Size, typename T>
 const/* can't modify the returned value */T RingBuffer<Size, T>::operator[](
 		uint16_t idx) const {
-	if (idx >= _length)
+	if (idx >= length())
 		return _buffer[0]; // declared as undefined behavior for the user
-	return _buffer[(_start + idx) % _capacity];
+	return _buffer[(_start + idx) % capacity()];
 }
 
 template<uint16_t Size, typename T>
@@ -127,7 +127,7 @@ T RingBuffer<Size, T>::pop_first() {
 	if (empty())
 		return _buffer[0];
 	uint8_t t = _start;
-	_start = (_start + 1) % _capacity;
+	_start = (_start + 1) % capacity();
 	--_length;
 	return _buffer[t];
 }
@@ -147,7 +147,7 @@ T RingBuffer<Size, T>::pop_last() {
 	if (empty())
 		return _buffer[0];
 	--_length;
-	_end = (_start + _length) % _capacity;
+	_end = (_start + length()) % capacity();
 	return _buffer[_end];
 }
 
@@ -173,12 +173,12 @@ bool RingBuffer<Size, T>::_is_continuous() const {
 template<uint16_t Size, typename T>
 void RingBuffer<Size, T>::_make_continuous() {
 	while (!_is_continuous()) {
-		T tmp = this->pop_last();
-		memmove(&(_buffer[_start - 1]), &(_buffer[_start]),
-				length() * sizeof(T));
-		--_start;
-		_end = (_start + _length) % _capacity;
-		this->append(tmp);
+		T tmp = _buffer[0];
+		memmove(&(_buffer[0]), &(_buffer[1]), (_end) * sizeof (T));
+		memmove(&(_buffer[_start - 1]), &(_buffer[_start]), (capacity() - _start) * sizeof (T));
+		_buffer[capacity() - 1] = tmp;
+		_start = (_start - 1) % capacity();
+		_end = (_start + length()) % capacity();
 	}
 }
 

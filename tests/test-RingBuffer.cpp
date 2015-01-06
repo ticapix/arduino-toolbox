@@ -166,7 +166,7 @@ TEST(RingBuffer, memmove_with_int) {
 	RingBuffer<3, int> buff;
 	for (auto c : { 1, 2, 3 })
         	  ASSERT_EQ(buff.append(c), 1); // |1|2|3|
-	buff.pop_firsts(2); // | | |3|
+	ASSERT_EQ(buff.pop_firsts(2), 2); // | | |3|
 	ASSERT_EQ(buff.append(4), 1); // |4| |3|
 	ASSERT_EQ(buff.append(5), 1); // |4|5|3|
 	ASSERT_EQ(buff.length(), 3);
