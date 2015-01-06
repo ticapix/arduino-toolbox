@@ -178,7 +178,8 @@ TEST(RingBuffer, memmove_with_int) {
 
 TEST(RingBuffer, memmove_append) {
 	RingBuffer<3, short> buff;
-        ASSERT_EQ(buff.append("123"), 3); // |1|2|3|
+	for (auto c : { 1, 2, 3 })  // |1|2|3|
+	        ASSERT_EQ(buff.append(c), 1);
 	buff.pop_first(); // | |2|3|
 	buff.pop_first(); // | | |3|
 	ASSERT_EQ(buff.append(4), 1); // |4| |3|
