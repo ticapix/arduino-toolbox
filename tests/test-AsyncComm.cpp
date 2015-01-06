@@ -86,7 +86,7 @@ TEST_F(AsyncCommTest, one_tick_timeout) {
   bool has_timeout = false;
 
   EXPECT_CALL(callbacks, clbk_executing(_)).WillRepeatedly(Return(true));
-  EXPECT_CALL(callbacks, clbk_timeout(_)).WillOnce(Invoke([&has_timeout](decltype(callbacks)::Buffer &buff) {
+  EXPECT_CALL(callbacks, clbk_timeout(_)).WillOnce(Invoke([&has_timeout](decltype(callbacks)::Buffer&) {
 	has_timeout = true;
       }));
   EXPECT_CALL(serial, available()).WillRepeatedly(Return(0));
@@ -105,7 +105,7 @@ TEST_F(AsyncCommTest, one_tick_buffer_overflow) {
   str.resize(decltype(callbacks)::Buffer::capacity());
   fakeSerialDataIn(str);
   EXPECT_CALL(callbacks, clbk_event(_));
-  EXPECT_CALL(callbacks, clbk_buffer_overflow(_)).WillOnce(Invoke([&has_overflow](decltype(callbacks)::Buffer &buff) {
+  EXPECT_CALL(callbacks, clbk_buffer_overflow(_)).WillOnce(Invoke([&has_overflow](decltype(callbacks)::Buffer&) {
 	has_overflow = true;
       }));
   comm.tick();
