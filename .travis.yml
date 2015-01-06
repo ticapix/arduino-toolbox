@@ -18,11 +18,14 @@ install:
 - sudo apt-get -qq install lcov
 - gem install coveralls-lcov
 
+before_script:
+- cd ${TRAVIS_BUILD_DIR}
+- lcov --directory . --zerocounters
+
 script:
 - cd ${TRAVIS_BUILD_DIR}
 - cmake .
 - make
-- lcov --directory . --zerocounters
 - ctest --verbose
 
 after_success:
