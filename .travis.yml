@@ -16,6 +16,7 @@ install:
 - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.9 90
 - sudo update-alternatives --install /usr/bin/gcov gcov /usr/bin/gcov-4.9 90
 - sudo apt-get -qq install lcov
+- lcov --version
 - gem install coveralls-lcov
 
 before_script:
