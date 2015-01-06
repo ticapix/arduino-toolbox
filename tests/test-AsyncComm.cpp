@@ -81,7 +81,7 @@ TEST_F(AsyncCommTest, one_tick_timeout) {
 
   EXPECT_CALL(serial, write(_, _));
   ASSERT_TRUE(comm.exec("", 0));
-  const unsigned long timeout = ASYNC_COMM_TIMEOUT_MS + 1;
+  const unsigned long timeout = ASYNC_COMM_TIMEOUT_MS + 10;
   unsigned long start = millis();
   bool has_timeout = false;
 
