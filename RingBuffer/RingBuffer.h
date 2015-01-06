@@ -174,7 +174,7 @@ template<uint16_t Size, typename T>
 void RingBuffer<Size, T>::_make_continuous() {
 	while (!_is_continuous()) {
 		T tmp = _buffer[0];
-		memmove(&(_buffer[0]), &(_buffer[1]), (_end) * sizeof (T));
+		memmove(&(_buffer[0]), &(_buffer[1]), (_end - 1) * sizeof (T));
 		memmove(&(_buffer[_start - 1]), &(_buffer[_start]), (capacity() - _start) * sizeof (T));
 		_buffer[capacity() - 1] = tmp;
 		_start = (_start - 1) % capacity();
