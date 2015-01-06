@@ -14,7 +14,7 @@ public:
 
 	RingBuffer();
 
-	bool append(T c);
+	uint16_t append(T c);
 
 	bool full() const;
 
@@ -62,7 +62,7 @@ public:
 	using RingBuffer<Size, byte>::END;
 	using RingBuffer<Size, byte>::append;
 
-	bool append(String str);
+	uint16_t append(String str);
 
 	uint16_t index_of(String substr, uint16_t offset = 0);
 
@@ -79,13 +79,13 @@ RingBuffer<Size, T>::RingBuffer() :
 }
 
 template<uint16_t Size, typename T>
-bool RingBuffer<Size, T>::append(T c) {
+uint16_t RingBuffer<Size, T>::append(T c) {
 	if (full())
-		return false;
+		return 0;
 	_buffer[_end] = c;
 	_end = (_end + 1) % _capacity;
 	++_length;
-	return true;
+	return 1;
 }
 template<uint16_t Size, typename T>
 bool RingBuffer<Size, T>::full() const {
@@ -118,7 +118,7 @@ template<uint16_t Size, typename T>
 const/* can't modify the returned value */T RingBuffer<Size, T>::operator[](
 		uint16_t idx) const {
 	if (idx > _length)
-		return (*this)[0]; // declared as undefined behavior for the user
+		return _buffer[0]; // declared as undefined behavior for the user
 	return _buffer[(_start + idx) % _capacity];
 }
 
@@ -183,13 +183,15 @@ void RingBuffer<Size, T>::_make_continuous() {
 }
 
 template<uint16_t Size>
-bool StringBuffer<Size>::append(String str) {
+uint16_t StringBuffer<Size>::append(String str) {
+        uint16_t count = 0;
 	for (uint16_t i = 0; i < str.length(); ++i) {
 		if (!this->append(str[i])) {
-			return false;
+			return count;
 		}
+		++count;
 	}
-	return true;
+	return count;
 }
 
 template<uint16_t Size>

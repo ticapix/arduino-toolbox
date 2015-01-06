@@ -3,6 +3,27 @@
 #include <Arduino.h>
 #include <RingBuffer.h>
 
+TEST(StringBuffer, error_handling) {
+	StringBuffer<2> buff;
+	// just init mem to a known value
+	ASSERT_EQ(buff.append('B'), 1);
+	// and clear buffer
+	buff.clear();
+	// should return undefined value if previously not init to 'B'
+	ASSERT_EQ(buff[0], 'B');
+	ASSERT_EQ(buff.pop_first(), 'B');
+	ASSERT_EQ(buff.pop_last(), 'B');
+	// try to append more than possible
+	ASSERT_EQ(buff.append("123"), decltype(buff)::capacity());
+}
+
+TEST(StringBuffer, error_index_of) {
+	StringBuffer<2> buff;
+	ASSERT_EQ(buff.append('B'), 1);
+	// try to find unexisting string
+	ASSERT_EQ(buff.index_of("B", 1), decltype(buff)::END);
+}
+
 TEST(StringBuffer, capacity) {
 	StringBuffer<2> buff;
 	ASSERT_EQ(decltype(buff)::capacity(), 2);
@@ -11,13 +32,13 @@ TEST(StringBuffer, capacity) {
 TEST(StringBuffer, append) {
 	StringBuffer<2> buff;
 	ASSERT_EQ(buff.index_of("1"), decltype(buff)::END);
-	ASSERT_TRUE(buff.append('1'));
+	ASSERT_EQ(buff.append('1'), 1);
 	ASSERT_EQ(buff.index_of("1"), 0);
 }
 
 TEST(StringBuffer, starts_with) {
 	StringBuffer<4> buff;
-	ASSERT_TRUE(buff.append("1234"));
+	ASSERT_EQ(buff.append("1234"), 4);
 	ASSERT_EQ(buff.pop_first(), '1');
 	ASSERT_TRUE(buff.starts_with("234"));
 }
@@ -26,11 +47,11 @@ TEST(StringBuffer, starts_with) {
 TEST(StringBuffer, pop_first) {
 	StringBuffer<2> buff;
 	ASSERT_EQ(buff.length(), 0);
-	ASSERT_TRUE(buff.append('1'));
+	ASSERT_EQ(buff.append('1'), 1);
 	ASSERT_EQ(buff.length(), 1);
-	ASSERT_TRUE(buff.append('2'));
+	ASSERT_EQ(buff.append('2'), 1);
 	ASSERT_EQ(buff.length(), 2);
-	ASSERT_FALSE(buff.append('3'));
+	ASSERT_EQ(buff.append('3'), 0);
 	ASSERT_EQ(buff.pop_first(), '1');
 	ASSERT_EQ(buff.length(), 1);
 	ASSERT_EQ(buff.pop_first(), '2');
@@ -39,17 +60,17 @@ TEST(StringBuffer, pop_first) {
 
 TEST(StringBuffer, pop_firsts) {
 	StringBuffer<3> buff;
-	ASSERT_TRUE(buff.append("123"));
+	ASSERT_EQ(buff.append("123"), 3);
 	ASSERT_EQ(buff.pop_firsts(3), 3);
 	ASSERT_TRUE(buff.empty());
 }
 
 TEST(StringBuffer, pop_last) {
 	StringBuffer<3> buff;
-	ASSERT_TRUE(buff.append("123"));
+	ASSERT_EQ(buff.append("123"), 3);
 	ASSERT_EQ(buff.pop_last(), '3');
 	ASSERT_EQ(buff.length(), 2);
-	ASSERT_TRUE(buff.append('4'));
+	ASSERT_EQ(buff.append('4'), 1);
 	ASSERT_EQ(buff[2], '4');
 	ASSERT_EQ(strncmp((const char* )buff.buffer(), "124", buff.length()), 0);
 }
