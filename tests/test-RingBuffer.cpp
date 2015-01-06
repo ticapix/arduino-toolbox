@@ -22,6 +22,8 @@ TEST(StringBuffer, error_index_of) {
 	ASSERT_EQ(buff.append('B'), 1);
 	// try to find unexisting string
 	ASSERT_EQ(buff.index_of("B", 1), decltype(buff)::END);
+	buff.clear();
+	ASSERT_EQ(buff.index_of("", 0), decltype(buff)::END);
 }
 
 TEST(StringBuffer, capacity) {
@@ -163,17 +165,18 @@ TEST(StringBuffer, buffer) {
 TEST(RingBuffer, memmove_with_int) {
 	RingBuffer<3, int> buff;
 	for (auto c : { 1, 2, 3 })
-	        ASSERT_EQ(buff.append(c), 1);
-	buff.pop_first();
-	ASSERT_EQ(buff.append(4), 1); // should not be continous anymore in internal mem
+        	  ASSERT_EQ(buff.append(c), 1); // |1|2|3|
+	buff.pop_firsts(2); // | | |3|
+	ASSERT_EQ(buff.append(4), 1); // |4| |3|
+	ASSERT_EQ(buff.append(5), 1); // |4|5|3|
 	ASSERT_EQ(buff.length(), 3);
-	ASSERT_EQ(buff[0], 2);
-	ASSERT_EQ(buff[1], 3);
-	ASSERT_EQ(buff[2], 4);
-	const int *arr = buff.buffer(); // should trigger an internal memmove
-	ASSERT_EQ(arr[0], 2);
-	ASSERT_EQ(arr[1], 3);
-	ASSERT_EQ(arr[2], 4);
+	ASSERT_EQ(buff[0], 3);
+	ASSERT_EQ(buff[1], 4);
+	ASSERT_EQ(buff[2], 5);
+	const int *arr = buff.buffer(); // should trigger an internal memmove |3|4|5|
+	ASSERT_EQ(arr[0], 3);
+	ASSERT_EQ(arr[1], 4);
+	ASSERT_EQ(arr[2], 5);
 }
 
 TEST(RingBuffer, memmove_append) {

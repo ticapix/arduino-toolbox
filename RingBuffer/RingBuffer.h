@@ -196,6 +196,8 @@ uint16_t StringBuffer<Size>::append(String str) {
 
 template<uint16_t Size>
 uint16_t StringBuffer<Size>::index_of(String substr, uint16_t offset) {
+        if (this->empty())
+    		return StringBuffer<Size>::END;
         if (substr.length() + offset > this->length())
 		return StringBuffer<Size>::END;
 	for (uint16_t i = offset; i <= this->length() - substr.length(); ++i) {
