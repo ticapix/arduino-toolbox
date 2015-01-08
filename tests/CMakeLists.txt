@@ -28,6 +28,7 @@ add_executable(tests
   Arduino.cpp              # define few arduino-like functions
   test-AsyncComm.cpp
   test-RingBuffer.cpp
+  test-Gprs.cpp
   )
 
 # enable C++11
@@ -36,6 +37,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../RingBuffer/)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../AsyncComm/)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../GPRS/)
 
 target_link_libraries(tests ${GTEST_BOTH_LIBRARIES})
 target_link_libraries(tests ${GMOCK_LIBRARIES})
