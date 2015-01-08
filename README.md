@@ -14,6 +14,10 @@ Simple `RingBuffer<Size, Type>` class with a specialization for `StringBuffer<Si
 
 Class helper for async communication over `HardwareSerial`, `SoftwareSerial` or any object exposing `read`, `write`, `available` methods.
 
+## [GPRS](/GPRS/)
+
+A class for communicating with a GSM/GPRS modem like the popular SIM900 used in many Arduino and Seeeduino shield.
+
 ## Tests
 
 All toolboxs are unit-tested using `GTest` and `GMock` frameworks.
