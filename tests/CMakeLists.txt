@@ -28,7 +28,7 @@ add_executable(tests
   Arduino.cpp              # define few arduino-like functions
   test-AsyncComm.cpp
   test-RingBuffer.cpp
-  test-Gprs.cpp
+  test-ATCmd.cpp
   )
 
 # enable C++11
