@@ -55,18 +55,20 @@ const uint16_t RingBuffer<Size, T>::END;
 
 
 template<uint16_t Size>
-class StringBuffer: public RingBuffer<Size, byte> {
+class StringBuffer: public RingBuffer<Size, char> {
 
 public:
 
-	using RingBuffer<Size, byte>::END;
-	using RingBuffer<Size, byte>::append;
+	using RingBuffer<Size, char>::END;
+	using RingBuffer<Size, char>::append;
 
-	uint16_t append(String str);
+	uint16_t append(const char* str);
 
-	uint16_t index_of(String substr, uint16_t offset = 0);
+	uint16_t index_of(const char* substr, uint16_t offset = 0);
 
-	bool starts_with(String substr);
+	bool starts_with(const char* substr);
+
+	bool pop_until(const char* substr);
 };
 
 /*
@@ -183,9 +185,10 @@ void RingBuffer<Size, T>::_make_continuous() {
 }
 
 template<uint16_t Size>
-uint16_t StringBuffer<Size>::append(String str) {
-        uint16_t count = 0;
-	for (uint16_t i = 0; i < str.length(); ++i) {
+uint16_t StringBuffer<Size>::append(const char* str) {
+	uint16_t count = 0;
+	size_t str_length = strlen(str);
+	for (uint16_t i = 0; i < str_length; ++i) {
 		if (!this->append(str[i])) {
 			return count;
 		}
@@ -195,14 +198,15 @@ uint16_t StringBuffer<Size>::append(String str) {
 }
 
 template<uint16_t Size>
-uint16_t StringBuffer<Size>::index_of(String substr, uint16_t offset) {
+uint16_t StringBuffer<Size>::index_of(const char* substr, uint16_t offset) {
         if (this->empty())
     		return StringBuffer<Size>::END;
-        if (substr.length() + offset > this->length())
+        size_t substr_length = strlen(substr);
+        if (substr_length + offset > this->length())
 		return StringBuffer<Size>::END;
-	for (uint16_t i = offset; i <= this->length() - substr.length(); ++i) {
+	for (uint16_t i = offset; i <= this->length() - substr_length; ++i) {
 		bool match = true;
-		for (uint16_t j = 0; j < substr.length() && match; ++j) {
+		for (uint16_t j = 0; j < substr_length && match; ++j) {
 			match = match && ((*this)[i + j] == substr[j]);
 		}
 		if (match)
@@ -212,8 +216,18 @@ uint16_t StringBuffer<Size>::index_of(String substr, uint16_t offset) {
 }
 
 template<uint16_t Size>
-bool StringBuffer<Size>::starts_with(String substr) {
+bool StringBuffer<Size>::starts_with(const char* substr) {
 	return (this->index_of(substr) == 0);
 }
+
+template<uint16_t Size>
+bool StringBuffer<Size>::pop_until(const char* substr) {
+	uint16_t offset = index_of(substr);
+	if (offset == StringBuffer<Size>::END)
+		return false;
+	this->pop_firsts(offset + strlen(substr));
+	return true;
+}
+
 
 #endif

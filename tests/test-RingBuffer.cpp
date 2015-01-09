@@ -34,6 +34,17 @@ TEST(StringBuffer, capacity) {
 	ASSERT_EQ(decltype(buff)::capacity(), 2);
 }
 
+TEST(StringBuffer, pop_until) {
+	StringBuffer<4> buff;
+	ASSERT_EQ(buff.append("ABCD"), 4);
+	ASSERT_FALSE(buff.pop_until("1"));
+	ASSERT_TRUE(buff.pop_until(""));
+	ASSERT_TRUE(buff.pop_until("AB"));
+	ASSERT_EQ(buff.length(), 2);
+	ASSERT_TRUE(buff.pop_until("CD"));
+	ASSERT_EQ(buff.length(), 0);
+}
+
 TEST(StringBuffer, append) {
 	StringBuffer<2> buff;
 	ASSERT_EQ(buff.index_of("1"), decltype(buff)::END);
