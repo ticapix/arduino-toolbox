@@ -12,21 +12,21 @@ using ::testing::_;
 using ::testing::WithArgs;
 using ::testing::Invoke;
 
-class MockSerial {
+class AsyncMockSerial {
 public:
 
 	MOCK_METHOD0(read, int());
 	MOCK_METHOD0(available, int());
 	MOCK_METHOD2(write, size_t(const void*, size_t));
 
-	MockSerial() {
+	AsyncMockSerial() {
 		ON_CALL(*this, available()).WillByDefault(Return(0));
 		ON_CALL(*this, write(_, _)).WillByDefault(ReturnArg<1>());
 	}
 };
 
 template <uint16_t BUFFER_SIZE>
-struct MockCallBacks: public AsyncCommCallBacks<BUFFER_SIZE> {
+struct AsyncMockCallBacks: public AsyncCommCallBacks<BUFFER_SIZE> {
 	typedef StringBuffer<BUFFER_SIZE> Buffer;
 
 	MOCK_METHOD1_T(clbk_executing, bool(Buffer&));
@@ -34,7 +34,7 @@ struct MockCallBacks: public AsyncCommCallBacks<BUFFER_SIZE> {
 	MOCK_METHOD1_T(clbk_buffer_overflow, void(Buffer&));
 	MOCK_METHOD1_T(clbk_event, void(Buffer&));
 
-	MockCallBacks() {
+	AsyncMockCallBacks() {
 		ON_CALL(*this, clbk_executing(_)).WillByDefault(Return(true));
 	}
 };
@@ -53,8 +53,8 @@ public:
 		return str.length();
 	}
 
-  MockSerial serial;
-  MockCallBacks<64> callbacks;
+	AsyncMockSerial serial;
+	AsyncMockCallBacks<64> callbacks;
 };
 
 template<typename T>
@@ -71,13 +71,13 @@ template<typename T>
 }
 
 TEST_F(AsyncCommTest, one_tick_no_data) {
-	AsyncComm<MockSerial, decltype(callbacks)> comm(serial, callbacks);
+	AsyncComm<AsyncMockSerial, decltype(callbacks)> comm(serial, callbacks);
 	EXPECT_CALL(serial, available());
 	comm.tick();
 }
 
 TEST_F(AsyncCommTest, one_tick_timeout) {
-  AsyncComm<MockSerial, decltype(callbacks)> comm(serial, callbacks);
+  AsyncComm<AsyncMockSerial, decltype(callbacks)> comm(serial, callbacks);
 
   EXPECT_CALL(serial, write(_, _));
   ASSERT_TRUE(comm.exec("", 0));
@@ -98,7 +98,7 @@ TEST_F(AsyncCommTest, one_tick_timeout) {
 }
 
 TEST_F(AsyncCommTest, one_tick_buffer_overflow) {
-  AsyncComm<MockSerial, decltype(callbacks)> comm(serial, callbacks);
+  AsyncComm<AsyncMockSerial, decltype(callbacks)> comm(serial, callbacks);
 
   std::string str;
   bool has_overflow = false;
@@ -113,7 +113,7 @@ TEST_F(AsyncCommTest, one_tick_buffer_overflow) {
 }
 
 TEST_F(AsyncCommTest, one_tick_event) {
-	AsyncComm<MockSerial, decltype(callbacks)> comm(serial, callbacks);
+	AsyncComm<AsyncMockSerial, decltype(callbacks)> comm(serial, callbacks);
 
 	size_t len = fakeSerialDataIn("1234");
 	EXPECT_CALL(callbacks, clbk_event(_)).WillOnce(
@@ -136,7 +136,7 @@ TEST_F(AsyncCommTest, one_tick_event) {
 }
 
 TEST_F(AsyncCommTest, exec_tick) {
-	AsyncComm<MockSerial, decltype(callbacks)> comm(serial, callbacks);
+	AsyncComm<AsyncMockSerial, decltype(callbacks)> comm(serial, callbacks);
 	std::string cmd("AT\r\n");
 	EXPECT_CALL(serial, write(_, cmd.length()));
 	// send command
