@@ -9,18 +9,21 @@
 
 #define AT_TIMEOUT_MS 500
 
+#define AT_IS_ERROR(v) (0 <= v && v < 10)
+#define AT_IS_EVENT(v) (20 <= v)
+
 enum at_cmd_result
 	: int8_t {
-	EXEC_PENDING = 0, // waiting for more data
-	EXEC_TIMEOUT, // timeout
-	ERROR_EXEC_ALREADY_RUNNING,
+	ERROR_EXEC_ALREADY_RUNNING = 0, // from here: errors
 	ERROR_EXEC_INTERNAL_BUFFER_TOO_SMALL, // error while generating cmd
 	ERROR_EXEC_WRITING, // serial write failed
 	ERROR_EVENT_TYPE_UNKNOWN,
 	ERROR_EVENT_FORMAT_UNKNOWN,
+	EXEC_PENDING = 10, // waiting for more data
+	EXEC_TIMEOUT, // timeout
 	AT_OK,
 	AT_ERROR,
-	AT_CFUN,
+	AT_CFUN = 20, // from here: events
 	AT_CFUN_FULL,
 	AT_CGREG,
 	AT_CLCC,
@@ -31,37 +34,12 @@ enum at_cmd_result
 	AT_CPIN_READY,
 	AT_DDET,
 	AT_DTMF,
+	AT_NO_RETURN
 };
 
-template<uint16_t BUFFER_SIZE>
-bool find_string_start_end(StringBuffer<BUFFER_SIZE>& buffer, const char* tok_start, const char* tok_end, uint16_t& off_start, uint16_t& off_end) {
-	off_start = buffer.index_of(tok_start);
-	if (off_start == StringBuffer<BUFFER_SIZE>::END)
-		return false;
-	off_end = buffer.index_of(tok_end, off_start);
-	if (off_end == StringBuffer<BUFFER_SIZE>::END)
-		return false;
-	return true;
-}
-
-template<uint16_t BUFFER_SIZE>
-enum at_cmd_result at_check(StringBuffer<BUFFER_SIZE>& buffer) {
-	auto pos = buffer.index_of("OK\r\n");
-	if (pos != StringBuffer<BUFFER_SIZE>::END) {
-		buffer.pop_firsts(pos);
-		buffer.pop_until("\r\n");
-		return AT_OK;
-	}
-	pos = buffer.index_of("ERROR\r\n");
-	if (pos != StringBuffer<BUFFER_SIZE>::END) {
-		buffer.pop_firsts(pos);
-		buffer.pop_until("\r\n");
-		return AT_ERROR;
-	}
-	return EXEC_PENDING;
-}
-
-
+/*
+ * EVENTS
+ */
 template<uint16_t BUFFER_SIZE>
 enum at_cmd_result at_cfun(StringBuffer<BUFFER_SIZE>& buffer, va_list&) {
 	auto result = ERROR_EVENT_FORMAT_UNKNOWN;
@@ -88,35 +66,42 @@ enum at_cmd_result at_dtmf(StringBuffer<BUFFER_SIZE>& buffer, va_list& args) {
 	char* tone = va_arg(args, char*);
 	*tone = buffer.pop_first();
 	buffer.pop_until("\r\n");
-	return AT_DTMF;
+	return AT_NO_RETURN;
 }
 
-//template<uint16_t BUFFER_SIZE>
-//enum at_cmd_result at_cgreg(StringBuffer<BUFFER_SIZE>& buffer) {
-//	uint16_t start, end;
-//	if (!find_string_start_end(buffer, "+CGREG:", "\r\n", start, end))
-//		return EXEC_PENDING;
-//	buffer.pop_firsts(start);
-//	buffer.pop_until(" ");
-//	auto result = ERROR_EVENT_FORMAT_UNKNOWN;
-//	// extract value && consume data
-//	buffer.pop_until("\r\n");
-//	return result;
-//}
-//
-//template<uint16_t BUFFER_SIZE>
-//enum at_cmd_result at_clcc(StringBuffer<BUFFER_SIZE>& buffer) {
-//	uint16_t start, end;
-//	if (!find_string_start_end(buffer, "+CLCC:", "\r\n", start, end))
-//		return EXEC_PENDING;
-//	buffer.pop_firsts(start);
-//	buffer.pop_until(" ");
-//	auto result = ERROR_EVENT_FORMAT_UNKNOWN;
-//	// extract value && consume data
-//	buffer.pop_until("\r\n");
-//	return result;
-//}
+template<uint16_t BUFFER_SIZE>
+enum at_cmd_result at_cgreg(StringBuffer<BUFFER_SIZE>& , va_list& ) {
+	auto result = ERROR_EVENT_FORMAT_UNKNOWN;
+	return result;
+}
 
+template<uint16_t BUFFER_SIZE>
+enum at_cmd_result at_clcc(StringBuffer<BUFFER_SIZE>& , va_list& ) {
+	auto result = ERROR_EVENT_FORMAT_UNKNOWN;
+	return result;
+}
+
+template<uint16_t BUFFER_SIZE>
+enum at_cmd_result at_cmgf(StringBuffer<BUFFER_SIZE>& , va_list& ) {
+	auto result = ERROR_EVENT_FORMAT_UNKNOWN;
+	return result;
+}
+
+template<uint16_t BUFFER_SIZE>
+enum at_cmd_result at_cmgl(StringBuffer<BUFFER_SIZE>& , va_list& ) {
+	auto result = ERROR_EVENT_FORMAT_UNKNOWN;
+	return result;
+}
+
+template<uint16_t BUFFER_SIZE>
+enum at_cmd_result at_ddet(StringBuffer<BUFFER_SIZE>& , va_list& ) {
+	auto result = ERROR_EVENT_FORMAT_UNKNOWN;
+	return result;
+}
+
+/*
+ * ATCMD
+ */
 template<typename T, uint16_t BUFFER_SIZE>
 class ATCmd {
 public:
@@ -128,7 +113,7 @@ public:
 	typedef StringBuffer<BUFFER_SIZE> Buffer;
 
 	enum at_cmd_result exec(const char* format, ...) {
-		enum at_cmd_result result = check_event();
+		enum at_cmd_result result = is_event_available();
 		if (result != EXEC_PENDING)
 			return result;
 		if (_is_executing)
@@ -149,7 +134,63 @@ public:
 		return ERROR_EXEC_WRITING;
 	}
 
-	enum at_cmd_result check_event() {
+	enum at_cmd_result check_status(unsigned long timeout = AT_TIMEOUT_MS) {
+		if (_is_executing && millis() - _exec_start >= timeout) {
+			_is_executing = false;
+			return EXEC_TIMEOUT;
+		}
+		while (_serial.available()) {
+			buffer.append(_serial.read());
+		}
+		enum at_cmd_result result = is_event_available();
+		if (result != EXEC_PENDING)
+			return result;
+		result = is_execution_done();
+		if (result != EXEC_PENDING)
+			_is_executing = false;
+		return result;
+	}
+
+	enum at_cmd_result parse_event(enum at_cmd_result type, ...) {
+		for (auto event: at_events) {
+			if (event.type != type || event.fct == nullptr)
+				continue;
+			va_list ap;
+			va_start(ap, type);
+			buffer.pop_until(event.token);
+			while (buffer[0] == ' ')  // left trim space
+				buffer.pop_first();
+			auto result = event.fct(buffer, ap);
+			va_end(ap);
+			return result;
+		}
+		return ERROR_EVENT_TYPE_UNKNOWN;
+	}
+
+	Buffer buffer;
+
+private:
+	T& _serial;
+	unsigned long _exec_start; // initialized when a new command is executed
+	bool _is_executing; // set to on when calling exec() && !_is_executing, set to false when timeout or 'or' or 'error'
+
+	enum at_cmd_result is_execution_done() {
+		auto pos = buffer.index_of("OK\r\n");
+		if (pos != StringBuffer<BUFFER_SIZE>::END) {
+			buffer.pop_firsts(pos);
+			buffer.pop_until("\r\n");
+			return AT_OK;
+		}
+		pos = buffer.index_of("ERROR\r\n");
+		if (pos != StringBuffer<BUFFER_SIZE>::END) {
+			buffer.pop_firsts(pos);
+			buffer.pop_until("\r\n");
+			return AT_ERROR;
+		}
+		return EXEC_PENDING;
+	}
+
+	enum at_cmd_result is_event_available() {
 		for (auto event: at_events) {
 			uint16_t tok = buffer.index_of(event.token);
 			if (tok == StringBuffer<BUFFER_SIZE>::END) {
@@ -164,47 +205,6 @@ public:
 		return EXEC_PENDING;
 	}
 
-	enum at_cmd_result parse_event(enum at_cmd_result type, ...) {
-		for (auto event: at_events) {
-			if (event.type != type || event.fct == nullptr)
-				continue;
-			va_list ap;
-			va_start(ap, type);
-			buffer.pop_until(event.token);
-			while (buffer[0] == ' ')  // left trim space
-				buffer.pop_first();
-			enum at_cmd_result result = event.fct(buffer, ap);
-			va_end(ap);
-			return result;
-		}
-		return ERROR_EVENT_TYPE_UNKNOWN;
-	}
-
-
-	enum at_cmd_result check_status(unsigned long timeout = AT_TIMEOUT_MS) {
-		if (_is_executing && millis() - _exec_start >= timeout) {
-			_is_executing = false;
-			return EXEC_TIMEOUT;
-		}
-		while (_serial.available()) {
-			buffer.append(_serial.read());
-		}
-		enum at_cmd_result result = check_event();
-		if (result != EXEC_PENDING)
-			return result;
-		result = at_check(buffer);
-		if (result != EXEC_PENDING)
-			_is_executing = false;
-		return result;
-	}
-
-	Buffer buffer;
-
-private:
-	T& _serial;
-	unsigned long _exec_start; // initialized when a new command is executed
-	bool _is_executing; // set to on when calling exec() && !_is_executing, set to false when timeout or 'or' or 'error'
-
 	struct at_event {
 		const char* token;
 		enum at_cmd_result type;
@@ -213,12 +213,12 @@ private:
 
 	static constexpr struct at_event at_events[] = {
 			{ "+CFUN:", AT_CFUN, &at_cfun},
-//			{"+CGREG:", AT_CGREG},
-//			{"+CLCC:", AT_CLCC},
-//			{"+CMGF:", AT_CMGF},
-//			{"+CMGL:", AT_CMGL },
+			{"+CGREG:", AT_CGREG, &at_cgreg},
+			{"+CLCC:", AT_CLCC, &at_clcc},
+			{"+CMGF:", AT_CMGF, &at_cmgf},
+			{"+CMGL:", AT_CMGL, &at_cmgl},
 			{"+CPIN:", AT_CPIN, &at_cpin},
-//			{"+DDET:", AT_DDET},
+			{"+DDET:", AT_DDET, &at_ddet},
 			{"+DTMF:", AT_DTMF, &at_dtmf},
 	};
 

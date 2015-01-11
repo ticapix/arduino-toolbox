@@ -208,7 +208,7 @@ TEST_F(ATCmdClient, at_dtmf) {
 	for (auto t: tones) {
 		char tone;
 		ASSERT_EQ(AT_DTMF, atcmd.check_status());
-		ASSERT_EQ(AT_DTMF, atcmd.parse_event(AT_DTMF, &tone));
+		ASSERT_EQ(AT_NO_RETURN, atcmd.parse_event(AT_DTMF, &tone));
 		ASSERT_EQ(t[0], tone);
 	}
 }
