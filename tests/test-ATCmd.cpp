@@ -119,8 +119,7 @@ TEST_F(ATCmdClient, at_timeout) {
 
 	EXPECT_CALL(serial, write(_ , _));
 	ASSERT_EQ(EXEC_PENDING, atcmd.exec("AT\r\n"));
-	auto status = atcmd.check_status(0);
-	ASSERT_EQ(EXEC_TIMEOUT, status);
+	ASSERT_EQ(EXEC_TIMEOUT, atcmd.check_status(0));
 }
 
 TEST_F(ATCmdClient, at_write_error) {
@@ -136,8 +135,7 @@ TEST_F(ATCmdClient, at_ok) {
 	serial.add_provision("\r\nOK\r\n");
 	EXPECT_CALL(serial, write(_ , _));
 	ASSERT_EQ(EXEC_PENDING, atcmd.exec("AT\r\n"));
-	auto status = atcmd.check_status();
-	ASSERT_EQ(AT_OK, status);
+	ASSERT_EQ(AT_OK, atcmd.check_status());
 	ASSERT_EQ(0, atcmd.buffer.length());
 }
 
@@ -171,7 +169,8 @@ TEST_F(ATCmdClient, at_cfun_full) {
 	serial.add_provision("\r\n+CFUN: 1\r\n\r\nOK\r\n");
 	EXPECT_CALL(serial, write(_, _));
 	ASSERT_EQ(EXEC_PENDING, atcmd.exec("AT+CFUN?\r\n"));
-	ASSERT_EQ(AT_CFUN_FULL, atcmd.check_status());
+	ASSERT_EQ(AT_CFUN, atcmd.check_status());
+	ASSERT_EQ(AT_CFUN_FULL, atcmd.parse_event(AT_CFUN));
 	ASSERT_EQ(AT_OK, atcmd.check_status());
 }
 
@@ -181,7 +180,8 @@ TEST_F(ATCmdClient, at_cpin) {
 	serial.add_provision("\r\n+CPIN: SIM PIN\r\n\r\nOK\r\n");
 	EXPECT_CALL(serial, write(_ , _));
 	ASSERT_EQ(EXEC_PENDING, atcmd.exec("AT+CPIN?\r\n"));
-	ASSERT_EQ(AT_CPIN_SIM_PIN, atcmd.check_status());
+	ASSERT_EQ(AT_CPIN, atcmd.check_status());
+	ASSERT_EQ(AT_CPIN_SIM_PIN, atcmd.parse_event(AT_CPIN));
 	ASSERT_EQ(AT_OK, atcmd.check_status());
 
 	serial.add_provision("\r\nOK\r\n");
@@ -192,7 +192,23 @@ TEST_F(ATCmdClient, at_cpin) {
 	serial.add_provision("\r\n+CPIN: READY\r\n\r\nOK\r\n");
 	EXPECT_CALL(serial, write(_ , _));
 	ASSERT_EQ(EXEC_PENDING, atcmd.exec("AT+CPIN?\r\n"));
-	ASSERT_EQ(AT_CPIN_READY, atcmd.check_status());
+	ASSERT_EQ(AT_CPIN, atcmd.check_status());
+	ASSERT_EQ(AT_CPIN_READY, atcmd.parse_event(AT_CPIN));
 	ASSERT_EQ(AT_OK, atcmd.check_status());
 }
 
+TEST_F(ATCmdClient, at_dtmf) {
+	ATCmd<ATMockSerial, 256> atcmd(serial);
+	std::string tones[] = {"1", "9", "*", "#"};
+	for (auto t: tones) {
+		ASSERT_EQ(8, serial.add_provision("\r\n+DTMF:"));
+		ASSERT_EQ(1, serial.add_provision(t.c_str()));
+		ASSERT_EQ(2, serial.add_provision("\r\n"));
+	}
+	for (auto t: tones) {
+		char tone;
+		ASSERT_EQ(AT_DTMF, atcmd.check_status());
+		ASSERT_EQ(AT_DTMF, atcmd.parse_event(AT_DTMF, &tone));
+		ASSERT_EQ(t[0], tone);
+	}
+}
