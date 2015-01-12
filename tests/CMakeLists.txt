@@ -29,6 +29,7 @@ add_executable(tests
   test-AsyncComm.cpp
   test-RingBuffer.cpp
   test-ATCmd.cpp
+  test-Coroutine.cpp
   )
 
 # enable C++11
@@ -38,6 +39,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../RingBuffer/)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../AsyncComm/)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../GPRS/)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../Coroutine/)
 
 target_link_libraries(tests ${GTEST_BOTH_LIBRARIES})
 target_link_libraries(tests ${GMOCK_LIBRARIES})
