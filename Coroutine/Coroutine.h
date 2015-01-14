@@ -1,4 +1,3 @@
-
 #ifndef INC_COROUTINES_H
 #define INC_COROUTINES_H
 
@@ -40,30 +39,46 @@
  * }
  */
 
-#define defCoroutine(T, name) struct name : Coroutine<T>
 
-#define cBegin() virtual RetType operator()() { switch (_state) { case 0:;
+#define defCoroutine(T, name) struct name : _Coroutine<T>
 
-#define cYield(x) do { _state = __LINE__; return x;	\
-  case __LINE__:; } while (0)
+#define cBegin() virtual ReturnType operator()() { switch (_state) { case 0:;
+#define cBegin_01(arg1) virtual ReturnType operator()(arg1) { switch (_state) { case 0:;
 
-#define cStop { _live = false; return _defRet; }
+#define cYield(x) do { _state = __LINE__; return x;	case __LINE__:; } while (0)
 
-#define cResume(v, C) (v = C(), C.Live())
+#define cStop() { _live = false; return _defRet; }
 
-#define cEnd(ret) _defRet = ret; }; cStop; }
+#define cResume(v, C) (v = C(), C.next())
+#define cResume_01(v, C, arg1) (v = C(arg1), C.next())
 
-template<class T>
-class Coroutine {
- protected:
-  typedef T RetType;
-  int _state;
-  bool _live;
-  RetType _defRet;
- Coroutine() : _state( 0 ), _live( true ) {}
- public:
-  bool Live() { return _live; }
-  /* bool Reset() {_live = true; _state = 0;} */
+#define cEnd(ret) _defRet = ret; }; cStop(); }
+
+
+template<typename RETURN_TYPE>
+class _Coroutine {
+protected:
+	typedef RETURN_TYPE ReturnType;
+	static int _state;
+	static bool _live;
+	static ReturnType _defRet;
+	_Coroutine() {
+	}
+public:
+	bool next() {
+		return _live;
+	}
+	/* bool Reset() {_live = true; _state = 0;} */
 };
+
+template<typename RETURN_TYPE>
+int _Coroutine<RETURN_TYPE>::_state = 0;
+
+template<typename RETURN_TYPE>
+bool _Coroutine<RETURN_TYPE>::_live = false;
+
+template<typename RETURN_TYPE>
+RETURN_TYPE _Coroutine<RETURN_TYPE>::_defRet;
+
 
 #endif

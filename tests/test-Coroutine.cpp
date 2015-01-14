@@ -3,6 +3,7 @@
 #include <Arduino.h>
 #include <Coroutine.h>
 
+
 defCoroutine(int, sequence1) {
   int i;
   cBegin();
@@ -35,7 +36,7 @@ TEST(Coroutine, simple) {
   int n;
   while (cResume(n, corout1)) {
     printf("%d\n", n);
-    delay(100);
+    delay(10);
   }
 }
 
