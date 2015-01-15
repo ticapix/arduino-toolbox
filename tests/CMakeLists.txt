@@ -29,6 +29,7 @@ add_executable(tests
   test-AsyncComm.cpp
   test-RingBuffer.cpp
   test-ATCmd.cpp
+  test-Gprs.cpp
   test-Coroutine.cpp
   )
 
