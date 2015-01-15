@@ -118,6 +118,7 @@ public:
 			return result;
 		if (_is_executing)
 			return ERROR_EXEC_ALREADY_RUNNING;
+		buffer.clear();
 		const uint16_t buff_len = 255;
 		char buff[buff_len];
 		va_list ap;
@@ -134,6 +135,9 @@ public:
 		return ERROR_EXEC_WRITING;
 	}
 
+	/*
+	 * this is not eating data from buffer
+	 */
 	enum at_cmd_result check_status(unsigned long timeout = AT_TIMEOUT_MS) {
 		if (_is_executing && millis() - _exec_start >= timeout) {
 			_is_executing = false;
@@ -177,14 +181,14 @@ private:
 	enum at_cmd_result is_execution_done() {
 		auto pos = buffer.index_of("OK\r\n");
 		if (pos != StringBuffer<BUFFER_SIZE>::END) {
-			buffer.pop_firsts(pos);
-			buffer.pop_until("\r\n");
+//			buffer.pop_firsts(pos);
+//			buffer.pop_until("\r\n");
 			return AT_OK;
 		}
 		pos = buffer.index_of("ERROR\r\n");
 		if (pos != StringBuffer<BUFFER_SIZE>::END) {
-			buffer.pop_firsts(pos);
-			buffer.pop_until("\r\n");
+//			buffer.pop_firsts(pos);
+//			buffer.pop_until("\r\n");
 			return AT_ERROR;
 		}
 		return EXEC_PENDING;

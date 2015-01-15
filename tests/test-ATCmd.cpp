@@ -136,6 +136,8 @@ TEST_F(ATCmdClient, at_ok) {
 	EXPECT_CALL(serial, write(_ , _));
 	ASSERT_EQ(EXEC_PENDING, atcmd.exec("AT\r\n"));
 	ASSERT_EQ(AT_OK, atcmd.check_status());
+	EXPECT_CALL(serial, write(_ , _));
+	ASSERT_EQ(EXEC_PENDING, atcmd.exec(""));
 	ASSERT_EQ(0, atcmd.buffer.length());
 }
 
@@ -146,6 +148,8 @@ TEST_F(ATCmdClient, at_error) {
 	EXPECT_CALL(serial, write(_ , _));
 	ASSERT_EQ(EXEC_PENDING, atcmd.exec("AT\r\n"));
 	ASSERT_EQ(AT_ERROR, atcmd.check_status());
+	EXPECT_CALL(serial, write(_ , _));
+	ASSERT_EQ(EXEC_PENDING, atcmd.exec(""));
 	ASSERT_EQ(0, atcmd.buffer.length());
 }
 
