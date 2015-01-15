@@ -34,15 +34,27 @@ public:
 	}
 
 	int available() {
-		return _buffer.length();
+		if (_buffer.length() != 0)
+			return _buffer.length();
+		if (_serial_events.size() == 0)
+			return 0;
+		_buffer.append(_serial_events[0].c_str());
+		_serial_events.erase(_serial_events.begin());
+		// start consuming next time
+		return 0;
 	}
 
-	int add_provision(const char* data) {
-		return _buffer.append(data);
+	void add_provision(const std::string data) {
+		if (_serial_events.size() == 0 && _buffer.length() == 0) {
+			// this the first add_provision or everything has been consumed
+			// pushing new data in the buffer directly
+			_buffer.append(data.c_str());
+		}
+		_serial_events.push_back(data);
 	}
 
 private:
-
+	std::vector<std::string> _serial_events;
 	StringBuffer<256> _buffer;
 
 };
@@ -59,18 +71,20 @@ TEST_F(GPRSClient, set_serial_ok) {
 
 	serial.add_provision(
 			"\r\n"
-			"OK\r\n"
+			"OK\r\n");
+	serial.add_provision(
 			"\r\n"
 			"+CPIN: SIM PIN\r\n"
 			"\r\n"
-			"OK\r\n"
+			"OK\r\n");
+	serial.add_provision(
 			"\r\n"
-			"OK\r\n"
+			"OK\r\n");
+	serial.add_provision(
 			"\r\n"
 			"+CPIN: READY\r\n"
 			"\r\n"
 			"OK\r\n"
 			);
-
 	ASSERT_EQ(AT_OK, gprs.set_serial_ok());
 }
