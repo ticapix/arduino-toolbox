@@ -9,6 +9,8 @@
 
 #define PRINT_BUFFER(b) fwrite(b.buffer(), 1, b.length(), stdout);
 
+#define AT_TIMEOUT_MS 1000 * 10
+
 #include <RingBuffer.h>
 #include <ATCmd.h>
 #include <Gprs.h>
@@ -28,7 +30,6 @@ public:
 
 	GPRSSerial() {
 		ON_CALL(*this, write(_, _)).WillByDefault(Invoke(this, &GPRSSerial::_write));
-//		ON_CALL(*this, write(_, _)).WillByDefault(ReturnArg<1>());
 	}
 
 	int read() {
@@ -57,8 +58,8 @@ public:
 			// this the first add_provision or everything has been consumed
 			// pushing new data in the buffer directly
 			_buffer.append(data.c_str());
-		}
-		_serial_events.push_back(data);
+		} else
+			_serial_events.push_back(data);
 	}
 
 private:

@@ -11,4 +11,11 @@ unsigned long millis();
 
 #define delay(n) usleep(n * 1000);
 
+#define F(str) (char*)str
+
+//#include <RingBuffer.h>
+//#include <ATCmd.h>
+//#include <AT_CFUN.h>
+//#include <AT_CPIN.h>
+
 #endif
