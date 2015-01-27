@@ -69,6 +69,9 @@ public:
 	bool starts_with(const char* substr);
 
 	bool pop_until(const char* substr);
+
+	bool pop_while(const char subchr);
+
 };
 
 /*
@@ -229,5 +232,13 @@ bool StringBuffer<Size>::pop_until(const char* substr) {
 	return true;
 }
 
+template<uint16_t Size>
+bool StringBuffer<Size>::pop_while(const char subchr) {
+	if (this->empty() || (*this)[0] != subchr)
+		return false;
+	while ((*this)[0] == subchr && !this->empty())
+		this->pop_first();
+	return true;
+}
 
 #endif

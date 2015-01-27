@@ -45,6 +45,15 @@ TEST(StringBuffer, pop_until) {
 	ASSERT_EQ(buff.length(), 0);
 }
 
+TEST(StringBuffer, pop_while) {
+	StringBuffer<9> buff;
+	ASSERT_EQ(buff.append("111222333"), 9);
+	ASSERT_FALSE(buff.pop_while('2'));
+	ASSERT_TRUE(buff.pop_while('1'));
+	ASSERT_FALSE(buff.pop_while('1'));
+	ASSERT_EQ(buff.length(), 6);
+}
+
 TEST(StringBuffer, append) {
 	StringBuffer<2> buff;
 	ASSERT_EQ(buff.index_of("1"), decltype(buff)::END);
