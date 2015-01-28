@@ -127,6 +127,14 @@ TEST_F(ATCmdClient, at_timeout) {
 	ASSERT_EQ(ERROR_EXEC_TIMEOUT, atcmd.check_status(0));
 }
 
+TEST_F(ATCmdClient, at_already_running) {
+	ATCmd<ATMockSerial, 256> atcmd(serial);
+
+	EXPECT_CALL(serial, write(_ , _));
+	ASSERT_EQ(EXEC_PENDING, atcmd.exec(" ", 1));
+	ASSERT_EQ(ERROR_EXEC_ALREADY_RUNNING, atcmd.exec(" ", 1));
+}
+
 TEST_F(ATCmdClient, at_write_error) {
 	ATCmd<ATMockSerial, 256> atcmd(serial);
 
@@ -167,7 +175,7 @@ TEST_F(ATCmdClient, at_error) {
 //	ASSERT_EQ(EXEC_OK, atcmd.check_status());
 //}
 
-TEST_F(ATCmdClient, at_cfun_full) {
+TEST_F(ATCmdClient, at_cfun) {
 	ATCmd<ATMockSerial, 256> atcmd(serial);
 
 	serial.add_provision("\r\nOK\r\n");
@@ -189,11 +197,26 @@ TEST_F(ATCmdClient, at_cfun_full) {
 TEST_F(ATCmdClient, at_cpin) {
 	ATCmd<ATMockSerial, 256> atcmd(serial);
 
+	EXPECT_CALL(serial, write(_ , _));
+	ASSERT_EQ(EXEC_PENDING, atcmd.exec(buffer, AT_CPIN::test(buffer, buff_len)));
+	ASSERT_EQ(EXEC_PENDING, atcmd.check_status());
+	serial.add_provision("OK\r\n");
+	ASSERT_EQ(EXEC_OK, atcmd.check_status());
+
+	enum AT_CPIN::status status;
+
+	serial.add_provision("\r\n+CPIN: SIM PUK\r\n\r\nOK\r\n");
+	EXPECT_CALL(serial, write(_ , _));
+	ASSERT_EQ(EXEC_PENDING, atcmd.exec(buffer, AT_CPIN::read(buffer, buff_len)));
+	ASSERT_EQ(EVT_CPIN, atcmd.check_status());
+	ASSERT_EQ(1, AT_CPIN::parse<256>(atcmd.buffer, &status));
+	ASSERT_EQ(AT_CPIN::SIM_PUK, status);
+	ASSERT_EQ(EXEC_OK, atcmd.check_status());
+
 	serial.add_provision("\r\n+CPIN: SIM PIN\r\n\r\nOK\r\n");
 	EXPECT_CALL(serial, write(_ , _));
 	ASSERT_EQ(EXEC_PENDING, atcmd.exec(buffer, AT_CPIN::read(buffer, buff_len)));
 	ASSERT_EQ(EVT_CPIN, atcmd.check_status());
-	enum AT_CPIN::status status;
 	ASSERT_EQ(1, AT_CPIN::parse<256>(atcmd.buffer, &status));
 	ASSERT_EQ(AT_CPIN::SIM_PIN, status);
 	ASSERT_EQ(EXEC_OK, atcmd.check_status());
@@ -214,6 +237,12 @@ TEST_F(ATCmdClient, at_cpin) {
 
 TEST_F(ATCmdClient, at_dtmf) {
 	ATCmd<ATMockSerial, 256> atcmd(serial);
+
+	serial.add_provision("\r\nOK\r\n");
+	EXPECT_CALL(serial, write(_ , _));
+	ASSERT_EQ(EXEC_PENDING, atcmd.exec(buffer, AT_DTMF::write(buffer, buff_len, AT_DTMF::ENABLE)));
+	ASSERT_EQ(EXEC_OK, atcmd.check_status());
+
 	std::string tones[] = {"1", "9", "*", "#"};
 	for (auto t: tones) {
 		ASSERT_EQ(8, serial.add_provision("\r\n+DTMF:"));
