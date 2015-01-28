@@ -31,7 +31,7 @@ size_t write(char* buff, size_t len, enum AT_CFUN::fun fun, enum AT_CFUN::rst rs
 }
 
 template<uint16_t BUFFER_SIZE = 0>
-uint8_t parse(StringBuffer<BUFFER_SIZE>& buffer, enum AT_CFUN::fun* fun , enum AT_CFUN::rst* rst) {
+uint8_t parse(StringBuffer<BUFFER_SIZE>& buffer, enum AT_CFUN::fun* fun) {
 	buffer.pop_until(EVT);
 	buffer.pop_while(' ');
 	uint8_t count = 0;
@@ -45,17 +45,6 @@ uint8_t parse(StringBuffer<BUFFER_SIZE>& buffer, enum AT_CFUN::fun* fun , enum A
 	} else if (buffer[0] == '4') {
 		*fun = DISABLE;
 		++count;
-	}
-	buffer.pop_first();
-	if (count && buffer[0] == ',') {
-		buffer.pop_first();
-		if (buffer[0] == '0') {
-			*rst = NO_RESET;
-			++count;
-		} else if (buffer[0] == '1') {
-			*rst = RESET;
-			++count;
-		}
 	}
 	buffer.pop_until(F("\r\n"));
 	return count;

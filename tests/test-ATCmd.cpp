@@ -178,18 +178,23 @@ TEST_F(ATCmdClient, at_error) {
 TEST_F(ATCmdClient, at_cfun) {
 	ATCmd<ATMockSerial, 256> atcmd(serial);
 
+	serial.add_provision("OK\r\n");
+	EXPECT_CALL(serial, write(_ , _));
+	ASSERT_EQ(EXEC_PENDING, atcmd.exec(buffer, AT_CFUN::test(buffer, buff_len)));
+	ASSERT_EQ(EXEC_OK, atcmd.check_status());
+
 	serial.add_provision("\r\nOK\r\n");
 	EXPECT_CALL(serial, write(_ , _));
 	ASSERT_EQ(EXEC_PENDING, atcmd.exec(buffer, AT_CFUN::write(buffer, buff_len, AT_CFUN::FULL)));
 	ASSERT_EQ(EXEC_OK, atcmd.check_status());
 
+	enum AT_CFUN::fun fun = AT_CFUN::MINIMAL;
+
 	serial.add_provision("\r\n+CFUN: 1\r\n\r\nOK\r\n");
 	EXPECT_CALL(serial, write(_, _));
 	ASSERT_EQ(EXEC_PENDING, atcmd.exec(buffer, AT_CFUN::read(buffer, buff_len)));
 	ASSERT_EQ(EVT_CFUN, atcmd.check_status());
-	enum AT_CFUN::fun fun = AT_CFUN::MINIMAL;
-	enum AT_CFUN::rst rst;
-	ASSERT_EQ(1, AT_CFUN::parse<256>(atcmd.buffer, &fun, &rst));
+	ASSERT_EQ(1, AT_CFUN::parse<256>(atcmd.buffer, &fun));
 	ASSERT_EQ(AT_CFUN::FULL, fun);
 	ASSERT_EQ(EXEC_OK, atcmd.check_status());
 }
