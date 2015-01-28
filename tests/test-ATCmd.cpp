@@ -166,14 +166,14 @@ TEST_F(ATCmdClient, at_error) {
 	ASSERT_EQ(0, atcmd.buffer.length());
 }
 
-//TEST_F(ATCmdClient, at_echo_enable) {
-//	ATCmd<ATMockSerial, 256> atcmd(serial);
-//
-//	serial.add_provision("\r\nOK\r\n");
-//	EXPECT_CALL(serial, write(_ , _));
-//	ASSERT_EQ(EXEC_PENDING, atcmd.exec("ATE%d\r\n", 1));
-//	ASSERT_EQ(EXEC_OK, atcmd.check_status());
-//}
+TEST_F(ATCmdClient, at_echo) {
+	ATCmd<ATMockSerial, 256> atcmd(serial);
+
+	serial.add_provision("\r\nOK\r\n");
+	EXPECT_CALL(serial, write(_ , _));
+	ASSERT_EQ(EXEC_PENDING, atcmd.exec(buffer, AT_ECHO::write(buffer, buff_len, AT_ECHO::OFF)));
+	ASSERT_EQ(EXEC_OK, atcmd.check_status());
+}
 
 TEST_F(ATCmdClient, at_cfun) {
 	ATCmd<ATMockSerial, 256> atcmd(serial);

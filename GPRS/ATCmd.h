@@ -186,4 +186,18 @@ size_t test(char* buff, size_t len) {
 }
 }
 
+/*
+ * AT_ECHO
+ */
+
+namespace AT_ECHO {
+enum status : int8_t {
+	OFF = 0,
+	ON = 1,
+};
+
+size_t write(char* buff, size_t len, enum AT_ECHO::status status) {
+return snprintf(buff, len, "ATE%d\r\n", status);
+}
+}
 #endif
