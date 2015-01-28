@@ -3,7 +3,6 @@
 | Branch | CI | Coverage |
 |---|---|---|
 | master | [![Build Status](https://travis-ci.org/ticapix/arduino-toolbox.svg?branch=master)](https://travis-ci.org/ticapix/arduino-toolbox) | [![Coverage Status](https://coveralls.io/repos/ticapix/arduino-toolbox/badge.png?branch=master)](https://coveralls.io/r/ticapix/arduino-toolbox?branch=master) |
-| v1.0 | [![Build Status](https://travis-ci.org/ticapix/arduino-toolbox.svg?branch=v1.0)](https://travis-ci.org/ticapix/arduino-toolbox?branch=v1.0) | [![Coverage Status](https://coveralls.io/repos/ticapix/arduino-toolbox/badge.png?branch=v1.0)](https://coveralls.io/r/ticapix/arduino-toolbox?branch=v1.0) |
 
 
 ##  [RingBuffer](/RingBuffer/)
