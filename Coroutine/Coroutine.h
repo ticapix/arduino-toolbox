@@ -1,84 +1,76 @@
-#ifndef INC_COROUTINES_H
-#define INC_COROUTINES_H
+#ifndef __COROUTINE__
+#define __COROUTINE__
 
-/*
- * Coroutines are implemented as C++ functors. They are a shorthand for
- * writing explicit finite state machines.
- *
- * cResume will return false once all yields are done.
- * The return type of the coroutine must be default constructable.
- * cYield will not function correctly within a switch block.
- *
- * Example Usage: ( print 123456789 over serial )
- * -------------
- * #include "coroutines.h"
- *
- * defCoroutine( int, sequence ) {
- *   int i;
- *   cBegin;
- *     i = 0;
- *     for ( true )
- *       cYield( ++i );
- *   cEnd;
- * };
- *
- * sequence s1;
- * int n;
- *
- * void setup() {
- *   n = 0;
- *   Serial.begin(9600);
- * }
- *
- * void loop() {
- *   int x;
- *   while ( n < 9 && cResume( x, func ) )
- *     ++n;
- *     Serial.print( x );
- *     delay( 200 );
- * }
- */
+unsigned long millis();
 
-
-#define defCoroutine(T, name) struct name : _Coroutine<T>
-
-#define cBegin() virtual ReturnType operator()() { switch (_state) { case 0:;
-#define cBegin_01(arg1) virtual ReturnType operator()(arg1) { switch (_state) { case 0:;
-
-#define cYield(x) do { _state = __LINE__; return x;	case __LINE__:; } while (0)
-
-#define cStop() { _live = false; return _defRet; }
-
-#define cResume(v, C) (v = C(), C.next())
-#define cResume_01(v, C, arg1) (v = C(arg1), C.next())
-
-#define cEnd(ret) _defRet = ret; }; cStop(); }
-
-
-template<typename RETURN_TYPE>
-class _Coroutine {
-protected:
-	typedef RETURN_TYPE ReturnType;
-	static int _state;
-	static bool _live;
-	static ReturnType _defRet;
-	_Coroutine() {
-	}
+class ICoroutine {
 public:
-	bool next() {
-		return _live;
-	}
-	/* bool Reset() {_live = true; _state = 0;} */
+	ICoroutine() {
+		reset();
+	};
+
+	bool live() { return _live; };
+
+	virtual void run() { _live = false; };
+
+	bool has_timeout() { return _timeout; };
+
+protected:
+	void reset() { _state = 0; _timeout = false; _live = true; _start = millis(); }
+	bool _live;
+	int _state;
+	bool _timeout;
+	unsigned long _start;
+	ICoroutine* _subtask;
 };
 
-template<typename RETURN_TYPE>
-int _Coroutine<RETURN_TYPE>::_state = 0;
 
-template<typename RETURN_TYPE>
-bool _Coroutine<RETURN_TYPE>::_live = false;
+#define COROUTINE(return_type, class_name) \
+class class_name : public ICoroutine { \
+public: \
+	return_type result() { return _result; } \
+private:\
+	return_type _result;
 
-template<typename RETURN_TYPE>
-RETURN_TYPE _Coroutine<RETURN_TYPE>::_defRet;
+#define CORO_ARG(class_name, arg_type, arg_name) \
+public: \
+	class_name* set_##arg_name(arg_type _##arg_name) { reset();  this->##arg_name = _##arg_name; return this; } \
+	arg_type arg_name;
+//	private: \  FIXME
 
+#define CORO_VAR(var_type, var_name) \
+	var_type var_name;
+//  private: \ FIXME
+
+#define TIMEOUT_MS 500
+
+#define CORO_START() \
+	void run() { \
+if (millis() - _start > TIMEOUT_MS) { _timeout = true; _live = false; } \
+if (!_live) return; \
+	switch (_state) { \
+	case 0:;
+
+#define CORO_END() \
+	_live = false; \
+	return; \
+} \
+	} \
+};
+
+
+#define CORO_RETURN(result) _result = result;
+
+#define YIELD() { _state = __LINE__; return; case __LINE__:; }
+
+#define AWAIT(coro) \
+	_subtask = coro; \
+while (_subtask->live()) { \
+	_subtask->run(); \
+	YIELD(); \
+}
+
+#define RESULT(class_name) \
+	[this](){auto tmp = ((class_name*)this->_subtask)->result(); delete this->_subtask; return tmp; }()
 
 #endif
