@@ -26,11 +26,11 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage") # enabling coverage
 add_executable(tests
   test.cpp                 # main
   Arduino.cpp              # define few arduino-like functions
-  test-AsyncComm.cpp
+#  test-AsyncComm.cpp
   test-RingBuffer.cpp
   test-ATCmd.cpp
 #  test-Gprs.cpp
-  test-Coroutine.cpp
+#  test-Coroutine.cpp
   )
 
 # enable C++11
