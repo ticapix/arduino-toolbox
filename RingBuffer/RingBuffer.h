@@ -236,7 +236,7 @@ template<uint16_t Size>
 bool StringBuffer<Size>::pop_while(const char subchr) {
 	if (this->empty() || (*this)[0] != subchr)
 		return false;
-	while ((*this)[0] == subchr && !this->empty())
+	while (!this->empty() && (*this)[0] == subchr)
 		this->pop_first();
 	return true;
 }
