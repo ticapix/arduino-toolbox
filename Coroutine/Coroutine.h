@@ -3,24 +3,36 @@
 
 unsigned long millis();
 
+#define TIMEOUT_MS 500
+
 class ICoroutine {
 public:
-	ICoroutine() {
-		reset();
-	};
+	ICoroutine(unsigned long timeout_ms) :
+		_live(true),
+		_state(0),
+		_has_timeout(false),
+		_start(millis()),
+		_timeout_ms(timeout_ms),
+		_subtask(nullptr) {};
 
 	bool live() { return _live; };
 
 	virtual void run() { _live = false; };
 
-	bool has_timeout() { return _timeout; };
+	bool has_timeout() { return _has_timeout; };
+
+	virtual ~ICoroutine() {
+		if (_subtask != nullptr) {
+			delete _subtask;
+		}
+	}
 
 protected:
-	void reset() { _state = 0; _timeout = false; _live = true; _start = millis(); }
 	bool _live;
 	int _state;
-	bool _timeout;
+	bool _has_timeout;
 	unsigned long _start;
+	unsigned long _timeout_ms;
 	ICoroutine* _subtask;
 };
 
@@ -28,25 +40,24 @@ protected:
 #define COROUTINE(return_type, class_name) \
 class class_name : public ICoroutine { \
 public: \
+	class_name(unsigned long timeout_ms = TIMEOUT_MS) : ICoroutine(timeout_ms) {} \
 	return_type result() { return _result; } \
-private:\
+private: \
 	return_type _result;
 
 #define CORO_ARG(class_name, arg_type, arg_name) \
 public: \
-	class_name* set_##arg_name(arg_type _##arg_name) { reset();  this->##arg_name = _##arg_name; return this; } \
-	arg_type arg_name;
-//	private: \  FIXME
+	class_name* set_##arg_name(arg_type _##arg_name) { this->arg_name = _##arg_name; return this; } \
+private: \
+arg_type arg_name;
 
 #define CORO_VAR(var_type, var_name) \
+private: \
 	var_type var_name;
-//  private: \ FIXME
-
-#define TIMEOUT_MS 500
 
 #define CORO_START() \
 	void run() { \
-if (millis() - _start > TIMEOUT_MS) { _timeout = true; _live = false; } \
+if (millis() - _start > _timeout_ms) { _has_timeout = true; _live = false; } \
 if (!_live) return; \
 	switch (_state) { \
 	case 0:;
@@ -58,12 +69,12 @@ if (!_live) return; \
 	} \
 };
 
-
 #define CORO_RETURN(result) _result = result;
 
 #define YIELD() { _state = __LINE__; return; case __LINE__:; }
 
 #define AWAIT(coro) \
+if (_subtask != nullptr) delete _subtask; \
 	_subtask = coro; \
 while (_subtask->live()) { \
 	_subtask->run(); \
@@ -71,6 +82,8 @@ while (_subtask->live()) { \
 }
 
 #define RESULT(class_name) \
-	[this](){auto tmp = ((class_name*)this->_subtask)->result(); delete this->_subtask; return tmp; }()
+	[this](){auto tmp = ((class_name*)this->_subtask)->result(); delete this->_subtask; this->_subtask = nullptr; return tmp; }()
+
+#define HAS_TIMEOUT() _subtask == nullptr ? false : _subtask->has_timeout()
 
 #endif
