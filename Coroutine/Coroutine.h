@@ -16,9 +16,7 @@ public:
 		return _live;
 	}
 
-	virtual void run() {
-		_live = false;
-	}
+	virtual void run()  = 0;
 
 	bool has_timeout() {
 		return _has_timeout;
