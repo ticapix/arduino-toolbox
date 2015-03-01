@@ -27,9 +27,10 @@ add_executable(tests
   test.cpp                 # main
   Arduino.cpp              # define few arduino-like functions
   test-RingBuffer.cpp
-  test-ATCmd.cpp
-#  test-Gprs.cpp
+#  test-ATCmd.cpp
+  test-Gprs.cpp
   test-Coroutine.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../Coroutine/Coroutine.cpp
   )
 
 # enable C++11

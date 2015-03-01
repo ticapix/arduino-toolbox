@@ -93,6 +93,7 @@ CORO_START(CountChar);
 	ASSERT_TRUE(HAS_TIMEOUT());
 	AWAIT((new CountNumber())->set_limit(to - from));
 	ASSERT_EQ(to - from, RESULT(CountNumber));
+	AWAIT(new Delay(0)); // just to check that it gets properly deleted
 }
 CORO_RETURN(0);
 CORO_END();

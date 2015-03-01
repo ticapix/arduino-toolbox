@@ -1,7 +1,7 @@
 #ifndef __COROUTINE__
 #define __COROUTINE__
 
-unsigned long millis();
+#include <Arduino.h>
 
 #define TIMEOUT_MS 500
 
@@ -95,46 +95,16 @@ while (_subtask->live()) { 					\
 
 #define HAS_TIMEOUT() _subtask == nullptr ? false : _subtask->has_timeout()
 
-//////////// EXAMPLE OF MAIN SCHEDULING LOOP implementation ////////////
-/*
- * It can be the only thing you have the call from the arduino loop() function
- */
-
-typedef void (*coro_callback)(uint8_t idx, const ICoroutine*);
-
-void schedule_coro(ICoroutine* coroutines[], uint8_t size, coro_callback clbk) {
-	bool has_coro = true;
-	while (has_coro) {
-		has_coro = false;
-		for (uint8_t idx = 0; idx < size; ++idx) {
-			ICoroutine* coro = coroutines[idx];
-			if (coro == nullptr)
-				continue;
-			has_coro = true;
-			if (coro->live()) {
-				coro->run();
-			} else {
-				clbk(idx, coro);
-				delete coro;
-				coroutines[idx] = nullptr;
-			}
-		}
-	}
-}
 
 //////////// EXAMPLE OF ASYNC Delay implementation ////////////
-
-/*
- * This coroutine will simply exit when timing out
- */
-
+// Implementation in the corresponding .cpp file //
 COROUTINE(int, Delay,) // NOTE the ', ' because there is no argument or variable
-CORO_START(Delay)
-{
-	while (true)
-		YIELD()
-}
-CORO_RETURN(0)
-CORO_END()
+
+//////////// EXAMPLE OF MAIN SCHEDULING LOOP implementation ////////////
+// Implementation in the corresponding .cpp file //
+
+typedef void (*coro_callback)(uint8_t idx, const ICoroutine*);
+void schedule_coro(ICoroutine* coroutines[], uint8_t size, coro_callback clbk);
+
 
 #endif

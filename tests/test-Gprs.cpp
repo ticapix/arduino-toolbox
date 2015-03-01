@@ -81,62 +81,140 @@ public:
 	GPRSSerial serial;
 };
 
-TEST_F(GPRSClient, set_serial_ok) {
-	GPRS<GPRSSerial, 256> gprs(serial);
 
-	EXPECT_CALL(serial, write(HasSubstr("AT\r\n"), _));
-	serial.add_provision(
-			"\r\n"
-			"OK\r\n");
-	ASSERT_EQ(AT_OK, gprs.set_serial_ok());
+#include "Coroutine.h"
+
+
+///////////////////////////////////////////////////////////////////////
+
+//http://en.cppreference.com/w/cpp/memory/new/operator_delete
+/*
+*  TODO: overload new.
+* if free_ram() too small, redirect to default TIMEOUT error result
+* overload delete
+* if default TIMEOUT error, do not free
+*/
+
+///////////////////////////////////////////////////////////////////////
+enum at_sim_status {
+	READY,
+	SIM_PIN
+};
+
+template<typename T, uint16_t BUFFER_SIZE>
+COROUTINE(bool, AtCpinTest,
+	CORO_ARG(AtCpinTest, T*, serial)
+	CORO_ARG(AtCpinTest, StringBuffer<BUFFER_SIZE>*, buffer)
+	CORO_VAR(uint16_t, start_idx)
+)
+
+#define COMMA ,
+template<typename T, uint16_t BUFFER_SIZE>
+CORO_START(AtCpinTest<T COMMA BUFFER_SIZE>)
+{
+	serial->write("AT+CPIN=?");
+	while (buffer->index_of("+CPIN:") == buffer->END()) {
+		while (serial->available()) {
+			buffer->append(serial->read());
+		}
+		YIELD()
+	}
+
+	start_idx = buffer->index_of("+CPIN:");
+	while (buffer->index_of("\n\r", start_idx) == buffer->END()) {
+		while (serial->available()) {
+			buffer->append(serial->read());
+		}
+		YIELD()
+	}
+
+	//	send_command("AT+CPIN=?");
+	//
+	//	while (buffer not "+CPIN:") {
+	//		YIELD();
+	//	}
+	//
+	//	offset = offset of "+CPIN"
+	//	while (buffer(offset) not "\n\r") {
+	//		YIELD();
+	//	}
+	//
+	//	// TODO check that is buffer is too small, by default should return true
+	//	AWAIT(new Delay(100 * (to - from)));
+	//	if (HAS_TIMEOUT()) {
+	//		printf("timeout\n");
+	//	}
+	//	AWAIT((new CountNumber())->set_limit(to - from));
+	//	printf("%c-%c = %d\n", to, from, RESULT(CountNumber));
+
+	while (true)
+		YIELD()
 }
+CORO_RETURN(0)
+CORO_END()
 
-TEST_F(GPRSClient, set_serial_ok_error) {
-	GPRS<GPRSSerial, 256> gprs(serial);
-
-	EXPECT_CALL(serial, write(HasSubstr("AT\r\n"), _)).Times(3);
-	serial.add_provision(
-			"\r\n"
-			"ERROR\r\n");
-	serial.add_provision(
-			"\r\n"
-			"ERROR\r\n");
-	serial.add_provision(
-			"\r\n"
-			"ERROR\r\n");
-	ASSERT_EQ(AT_ERROR, gprs.set_serial_ok());
-}
-
-TEST_F(GPRSClient, set_serial_ok_timeout) {
-	GPRS<GPRSSerial, 256> gprs(serial);
-
-	EXPECT_CALL(serial, write(HasSubstr("AT\r\n"), _)).Times(3);
-	ASSERT_EQ(EXEC_TIMEOUT, gprs.set_serial_ok());
-}
-
-TEST_F(GPRSClient, set_pin_code) {
-	GPRS<GPRSSerial, 256> gprs(serial);
-
-	EXPECT_CALL(serial, write(HasSubstr("AT\r\n"), _));
-	serial.add_provision(
-			"\r\n"
-			"OK\r\n");
-	EXPECT_CALL(serial, write(HasSubstr("AT+CPIN?\r\n"), _));
-	serial.add_provision(
-			"\r\n"
-			"+CPIN: SIM PIN\r\n"
-			"\r\n"
-			"OK\r\n");
-//	EXPECT_CALL(serial, write(HasSubstr("AT+CPIN=1234\r\n"), _));
-	serial.add_provision(
-			"\r\n"
-			"OK\r\n");
+COROUTINE(enum at_sim_status, ATSimStatus,
+	CORO_ARG(ATSimStatus, char*, buffer)
+	CORO_VAR(enum at_sim_status, ans)
+)
+//
+//
+//TEST_F(GPRSClient, set_serial_ok) {
+//	GPRS<GPRSSerial, 256> gprs(serial);
+//
+//	EXPECT_CALL(serial, write(HasSubstr("AT\r\n"), _));
+//	serial.add_provision(
+//			"\r\n"
+//			"OK\r\n");
+//	ASSERT_EQ(AT_OK, gprs.set_serial_ok());
+//}
+//
+//TEST_F(GPRSClient, set_serial_ok_error) {
+//	GPRS<GPRSSerial, 256> gprs(serial);
+//
+//	EXPECT_CALL(serial, write(HasSubstr("AT\r\n"), _)).Times(3);
+//	serial.add_provision(
+//			"\r\n"
+//			"ERROR\r\n");
+//	serial.add_provision(
+//			"\r\n"
+//			"ERROR\r\n");
+//	serial.add_provision(
+//			"\r\n"
+//			"ERROR\r\n");
+//	ASSERT_EQ(AT_ERROR, gprs.set_serial_ok());
+//}
+//
+//TEST_F(GPRSClient, set_serial_ok_timeout) {
+//	GPRS<GPRSSerial, 256> gprs(serial);
+//
+//	EXPECT_CALL(serial, write(HasSubstr("AT\r\n"), _)).Times(3);
+//	ASSERT_EQ(EXEC_TIMEOUT, gprs.set_serial_ok());
+//}
+//
+//TEST_F(GPRSClient, set_pin_code) {
+//	GPRS<GPRSSerial, 256> gprs(serial);
+//
+//	EXPECT_CALL(serial, write(HasSubstr("AT\r\n"), _));
+//	serial.add_provision(
+//			"\r\n"
+//			"OK\r\n");
 //	EXPECT_CALL(serial, write(HasSubstr("AT+CPIN?\r\n"), _));
-	serial.add_provision(
-			"\r\n"
-			"+CPIN: READY\r\n"
-			"\r\n"
-			"OK\r\n"
-			);
-	ASSERT_EQ(AT_OK, gprs.set_pin_code("1234"));
-}
+//	serial.add_provision(
+//			"\r\n"
+//			"+CPIN: SIM PIN\r\n"
+//			"\r\n"
+//			"OK\r\n");
+////	EXPECT_CALL(serial, write(HasSubstr("AT+CPIN=1234\r\n"), _));
+//	serial.add_provision(
+//			"\r\n"
+//			"OK\r\n");
+////	EXPECT_CALL(serial, write(HasSubstr("AT+CPIN?\r\n"), _));
+//	serial.add_provision(
+//			"\r\n"
+//			"+CPIN: READY\r\n"
+//			"\r\n"
+//			"OK\r\n"
+//			);
+//	ASSERT_EQ(AT_OK, gprs.set_pin_code("1234"));
+//}
