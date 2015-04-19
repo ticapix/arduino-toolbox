@@ -82,6 +82,7 @@ struct CoroCtx {
 		typedef struct fct_name ## _ctx fct_name ## Ctx;
 
 #define CORO_INIT(ctx, timeout_ms)	\
+	memset(&ctx, 0, sizeof(ctx));	\
 	ctx._live = true;				\
 	ctx._state = 0;					\
 	ctx._has_timeout = false;		\
@@ -111,9 +112,12 @@ void fct_name(fct_name ## _ctx &ctx) { 															\
 			YIELD_CTX();				\
 		}
 
-#define CORO_RESULT(ctx) (ctx._has_timeout ? reinterpret_cast<decltype(ctx._result)>(0) : ctx._result)
+//#define CORO_RESULT(ctx) (ctx._has_timeout ? reinterpret_cast<decltype(ctx._result)>(0) : ctx._result)
+#define CORO_RESULT(ctx) ctx._result
 
 #define CORO_HAS_TIMEOUT(ctx) ctx._has_timeout
+
+#define CORO_ALIVE(ctx) ctx._live
 
 ///////////////
 CORO_CTX(bool, Delay2, )
@@ -125,39 +129,36 @@ CORO_BEGIN_CTX(Delay2)
 }
 CORO_END_CTX()
 ///////////////
-CORO_CTX(int, Count,
+CORO_CTX(int, CountNumber2,
 	int limit;
 	int count;
-)
-CORO_BEGIN_CTX(Count)
-{
 	Delay2Ctx d;
+)
+CORO_BEGIN_CTX(CountNumber2)
+{
 	ctx.count = 0;
 	while (ctx.count < ctx.limit) {
 		++ctx.count;
-		CORO_INIT(d, ctx.count * 10);
-		AWAIT_CTX(Delay2, d);
+		CORO_INIT(ctx.d, 10);
+		AWAIT_CTX(Delay2, ctx.d);
 	}
 }
 CORO_RETURN_CTX(ctx.count);
 CORO_END_CTX()
 ///////////////
 
-TEST(Coroutine, count_ctx) {
-//	unsigned long timeout = 1000 * 60;
-	CountCtx a, b;
+TEST(Coroutine, two_counters2) {
+	CountNumber2Ctx a, b;
 	CORO_INIT(a, 10*10*10);
 	a.limit = 10;
 	CORO_INIT(b, 10*10*10);
 	b.limit = 5;
-	while (a._live || b._live) {
-		Count(a);
-		Count(b);
+	while (CORO_ALIVE(a) || CORO_ALIVE(b)) {
+		CountNumber2(a);
+		CountNumber2(b);
 	}
-	ASSERT_FALSE(CORO_HAS_TIMEOUT(a));
-	ASSERT_EQ(10, CORO_RESULT(a));
-	ASSERT_FALSE(CORO_HAS_TIMEOUT(b));
-	ASSERT_EQ(5, CORO_RESULT(b));
+	ASSERT_FALSE(CORO_HAS_TIMEOUT(a));	ASSERT_EQ(10, CORO_RESULT(a));
+	ASSERT_FALSE(CORO_HAS_TIMEOUT(b));	ASSERT_EQ(5, CORO_RESULT(b));
 }
 
 TEST(Coroutine, two_counters) {
@@ -191,6 +192,44 @@ CORO_START(CountChar);
 }
 CORO_RETURN(0);
 CORO_END();
+
+CORO_CTX(bool, CountChar2,
+	char from;
+	char to;
+	Delay2Ctx d;
+	CountNumber2Ctx c;
+)
+CORO_BEGIN_CTX(CountChar2)
+{
+	CORO_RETURN_CTX(false);
+	CORO_INIT(ctx.d, 50 * (ctx.to - ctx.from));
+	AWAIT_CTX(Delay2, ctx.d);
+	ASSERT_TRUE(CORO_HAS_TIMEOUT(ctx.d));
+
+	CORO_INIT(ctx.c, TIMEOUT_MS * 100);
+	ctx.c.limit = ctx.to - ctx.from;
+	AWAIT_CTX(CountNumber2, ctx.c);
+	ASSERT_FALSE(CORO_HAS_TIMEOUT(ctx.c));
+	ASSERT_EQ(ctx.to - ctx.from, CORO_RESULT(ctx.c));
+}
+CORO_RETURN_CTX(true);
+CORO_END_CTX()
+
+TEST(Coroutine, two_countchar2) {
+	CountChar2Ctx a, b;
+	CORO_INIT(a, TIMEOUT_MS * 100);
+	a.from = 'A';
+	a.to = 'B';
+	CORO_INIT(b, TIMEOUT_MS * 100);
+	a.from = 'B';
+	a.to = 'F';
+	while (CORO_ALIVE(a) || CORO_ALIVE(b)) {
+		CountChar2(a);
+		CountChar2(b);
+	}
+	ASSERT_FALSE(CORO_HAS_TIMEOUT(a));	ASSERT_TRUE(CORO_RESULT(a));
+	ASSERT_FALSE(CORO_HAS_TIMEOUT(b));	ASSERT_TRUE(CORO_RESULT(b));
+}
 
 TEST(Coroutine, two_countchar) {
 	g_sched = new SchedulerClkMock();
