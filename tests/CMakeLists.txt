@@ -30,6 +30,7 @@ add_executable(tests
 #  test-ATCmd.cpp
   test-Gprs.cpp
   test-Coroutine.cpp
+  test-CoroutineCtx.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/../Coroutine/Coroutine.cpp
   )
 
