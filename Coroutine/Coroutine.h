@@ -3,7 +3,7 @@
 
 #include <Arduino.h>
 
-#define TIMEOUT_MS 500
+#define TIMEOUT_MS 5 * 1000
 
 class ICoroutine {
 public:
@@ -29,12 +29,12 @@ public:
 	}
 
 protected:
-	bool _live;
-	int _state;
-	bool _has_timeout;
-	unsigned long _start;
-	unsigned long _timeout_ms;
-	ICoroutine* _subtask;
+	bool _live;  // is it running ?
+	int _state;  // line to jump to
+	bool _has_timeout;  // has timed out ?
+	unsigned long _start;  // start timestamp
+	unsigned long _timeout_ms;  // timeout value
+	ICoroutine* _subtask;  // holder for a sub-coroutine inside a coroutine
 };
 
 #define COROUTINE(return_type, class_name, source) 									\
