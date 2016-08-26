@@ -21,5 +21,3 @@ A class for communicating with a GSM/GPRS modem like the popular SIM900 used in 
 
 All toolboxs are unit-tested using `GTest` and `GMock` frameworks.
 
-
-This is awesome
